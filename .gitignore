@@ -1,5 +1,13 @@
 # Go
 hivepulse-api/bin/
+hivepulse-api/vendor/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
 # Note: hivepulse-api/docs/ is NOT ignored — Swagger docs are committed and CI diffs them
 
 # Node
@@ -8,7 +16,8 @@ hivepulse-web/dist/
 
 # Env
 .env
-*.local
+hivepulse-web/.env.local
+hivepulse-web/.env.*.local
 
 # Superpowers
 .superpowers/
