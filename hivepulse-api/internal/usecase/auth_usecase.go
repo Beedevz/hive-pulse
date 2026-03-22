@@ -16,7 +16,8 @@ import (
 type AuthUsecase struct {
 	userRepo      port.UserRepository
 	tokenRepo     port.TokenRepository
-	accessSecret  string
+	accessSecret string
+	// refreshSecret is reserved for future signed refresh token support.
 	refreshSecret string
 	accessExpiry  time.Duration
 	refreshExpiry time.Duration
@@ -28,7 +29,14 @@ func NewAuthUsecase(
 	accessSecret, refreshSecret string,
 	accessExpiry, refreshExpiry time.Duration,
 ) *AuthUsecase {
-	return &AuthUsecase{userRepo, tokenRepo, accessSecret, refreshSecret, accessExpiry, refreshExpiry}
+	return &AuthUsecase{
+		userRepo:      userRepo,
+		tokenRepo:     tokenRepo,
+		accessSecret:  accessSecret,
+		refreshSecret: refreshSecret,
+		accessExpiry:  accessExpiry,
+		refreshExpiry: refreshExpiry,
+	}
 }
 
 func (u *AuthUsecase) SetupRequired(ctx context.Context) (bool, error) {
@@ -75,7 +83,10 @@ func (u *AuthUsecase) Login(ctx context.Context, email, password, deviceFP, ip s
 func (u *AuthUsecase) Refresh(ctx context.Context, rawRefreshToken string) (newAccess, newRefresh string, err error) {
 	hash := hashToken(rawRefreshToken)
 	stored, err := u.tokenRepo.FindByHash(ctx, hash)
-	if err != nil || time.Now().After(stored.ExpiresAt) {
+	if err != nil {
+		return "", "", domain.ErrUnauthorized
+	}
+	if stored == nil || time.Now().After(stored.ExpiresAt) {
 		return "", "", domain.ErrUnauthorized
 	}
 	user, err := u.userRepo.FindByID(ctx, stored.UserID)
@@ -116,8 +127,11 @@ func (u *AuthUsecase) generateAccessToken(user *domain.User) (string, error) {
 }
 
 func (u *AuthUsecase) issueRefreshToken(ctx context.Context, userID, deviceFP, ip string) (string, error) {
-	raw := generateRandomToken()
-	err := u.tokenRepo.Create(ctx, &domain.RefreshToken{
+	raw, err := generateRandomToken()
+	if err != nil {
+		return "", err
+	}
+	err = u.tokenRepo.Create(ctx, &domain.RefreshToken{
 		UserID:    userID,
 		TokenHash: hashToken(raw),
 		DeviceFP:  deviceFP,
@@ -132,8 +146,10 @@ func hashToken(raw string) string {
 	return hex.EncodeToString(h[:])
 }
 
-func generateRandomToken() string {
+func generateRandomToken() (string, error) {
 	b := make([]byte, 32)
-	_, _ = cryptorand.Read(b)
-	return hex.EncodeToString(b)
+	if _, err := cryptorand.Read(b); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b), nil
 }
