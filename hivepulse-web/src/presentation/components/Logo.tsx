@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import { useTheme } from '../../shared/useTheme'
 
 export const Logo = ({ size = 28 }: { size?: number }) => {
