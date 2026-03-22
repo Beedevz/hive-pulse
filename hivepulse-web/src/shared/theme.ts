@@ -17,5 +17,5 @@ export const themes = {
   },
 } as const
 
-export type Theme = typeof themes.dark
 export type ThemeName = keyof typeof themes
+export type Theme = typeof themes[ThemeName]

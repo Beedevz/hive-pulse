@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState } from 'react'
 import { themes, type Theme, type ThemeName } from './theme'
 
 interface ThemeContextValue { theme: Theme; name: ThemeName; toggle: () => void }
