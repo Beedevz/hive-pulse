@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"log"
 	"os"
 	"time"
 )
@@ -19,8 +20,14 @@ type Config struct {
 }
 
 func LoadConfig() *Config {
-	accessExpiry, _ := time.ParseDuration(getEnv("JWT_ACCESS_EXPIRY", "15m"))
-	refreshExpiry, _ := time.ParseDuration(getEnv("JWT_REFRESH_EXPIRY", "168h"))
+	accessExpiry, err := time.ParseDuration(getEnv("JWT_ACCESS_EXPIRY", "15m"))
+	if err != nil {
+		log.Fatalf("invalid JWT_ACCESS_EXPIRY: %v", err)
+	}
+	refreshExpiry, err := time.ParseDuration(getEnv("JWT_REFRESH_EXPIRY", "168h"))
+	if err != nil {
+		log.Fatalf("invalid JWT_REFRESH_EXPIRY: %v", err)
+	}
 
 	return &Config{
 		AppEnv:             getEnv("APP_ENV", "development"),
@@ -44,7 +51,7 @@ func getEnv(key, fallback string) string {
 func mustEnv(key string) string {
 	v := os.Getenv(key)
 	if v == "" {
-		panic("required environment variable not set: " + key)
+		log.Fatalf("required environment variable not set: %s", key)
 	}
 	return v
 }
