@@ -1,0 +1,18 @@
+# CODEOWNERS — reviewers auto-assigned on every PR
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default: all files require review from a Beedevz maintainer
+*                           @Beedevz
+
+# Go backend
+/hivepulse-api/             @Beedevz
+
+# React frontend
+/hivepulse-web/             @Beedevz
+
+# Helm chart
+/helm/                      @Beedevz
+
+# CI/CD and release pipeline — changes here require extra care
+/.github/                   @Beedevz
+/cliff.toml                 @Beedevz
