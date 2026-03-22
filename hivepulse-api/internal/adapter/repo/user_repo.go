@@ -62,6 +62,31 @@ func (r *UserRepo) Count(ctx context.Context) (int64, error) {
 	return count, r.db.WithContext(ctx).Model(&userModel{}).Count(&count).Error
 }
 
+func (r *UserRepo) List(ctx context.Context, page, limit int) ([]*domain.User, int64, error) {
+	var models []userModel
+	var total int64
+	offset := (page - 1) * limit
+	if err := r.db.WithContext(ctx).Model(&userModel{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	if err := r.db.WithContext(ctx).Offset(offset).Limit(limit).Order("created_at DESC").Find(&models).Error; err != nil {
+		return nil, 0, err
+	}
+	result := make([]*domain.User, len(models))
+	for i := range models {
+		result[i] = toDomainUser(&models[i])
+	}
+	return result, total, nil
+}
+
+func (r *UserRepo) UpdateRole(ctx context.Context, id string, role domain.Role) error {
+	return r.db.WithContext(ctx).Model(&userModel{}).Where("id = ?", id).Update("role", string(role)).Error
+}
+
+func (r *UserRepo) Delete(ctx context.Context, id string) error {
+	return r.db.WithContext(ctx).Delete(&userModel{}, "id = ?", id).Error
+}
+
 func toDomainUser(m *userModel) *domain.User {
 	return &domain.User{
 		ID:           m.ID,
