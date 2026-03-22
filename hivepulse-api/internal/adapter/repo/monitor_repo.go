@@ -83,7 +83,6 @@ func (r *MonitorRepo) FindAll(ctx context.Context, page, limit int) ([]*domain.M
 
 func (r *MonitorRepo) Update(ctx context.Context, m *domain.Monitor) error {
 	updates := map[string]any{
-		"user_id":          m.UserID,
 		"name":             m.Name,
 		"check_type":       string(m.CheckType),
 		"interval":         m.Interval,

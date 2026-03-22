@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/beedevz/hivepulse/internal/domain"
 	"github.com/beedevz/hivepulse/internal/port"
@@ -50,7 +51,7 @@ var validIntervals = map[int]bool{
 }
 
 func (u *MonitorUsecase) validate(req MonitorRequest) error {
-	if strings.TrimSpace(req.Name) == "" || len(req.Name) > 100 {
+	if strings.TrimSpace(req.Name) == "" || utf8.RuneCountInString(req.Name) > 100 {
 		return fmt.Errorf("%w: name required, max 100 chars", domain.ErrValidation)
 	}
 	if !validIntervals[req.Interval] {
