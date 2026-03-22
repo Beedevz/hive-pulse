@@ -225,7 +225,7 @@ Triggered by pushing a semver tag (e.g. `git tag v1.2.0 && git push --tags`).
 ## Deployment
 
 ### Docker Compose (default)
-- `hivepulse-api`: multi-stage Dockerfile (build: `golang:1.22-alpine`, run: `alpine:3.19`)
+- `hivepulse-api`: multi-stage Dockerfile (build: `golang:1.26-alpine`, run: `alpine:3.19`)
 - `postgres`: `postgres:16-alpine` with named volume
 - Optional: PgBouncer, Redis (for distributed rate limiting)
 
