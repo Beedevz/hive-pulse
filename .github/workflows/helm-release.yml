@@ -1,0 +1,54 @@
+name: Helm Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  helm-release:
+    name: Package & Publish Helm Chart
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # push to gh-pages & create release assets
+
+    steps:
+      - name: Checkout (full history required by chart-releaser)
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name  "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Stamp Chart.yaml with release version
+        run: |
+          CHART_VERSION="${GITHUB_REF_NAME#v}"    # semver without v  (e.g. 1.5.0)
+          APP_VERSION="${GITHUB_REF_NAME}"         # keeps v prefix to match Docker Hub tag (e.g. v1.5.0)
+          sed -i "s/^version:.*/version: ${CHART_VERSION}/"         helm/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: \"${APP_VERSION}\"/" helm/Chart.yaml
+          echo "Chart version: ${CHART_VERSION}, appVersion: ${APP_VERSION}"
+          cat helm/Chart.yaml
+
+      - name: Ensure gh-pages branch exists
+        run: |
+          if ! git ls-remote --exit-code --heads origin gh-pages; then
+            git switch --orphan gh-pages
+            git commit --allow-empty -m "chore: initialize gh-pages for Helm chart repo"
+            git push origin gh-pages
+            git switch -
+          fi
+
+      # chart-releaser packages helm/ and publishes to gh-pages.
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.6.0
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          charts_dir: .        # looks for Chart.yaml in subdirs of repo root
+          skip_existing: true    # idempotent — safe to re-run on same tag
