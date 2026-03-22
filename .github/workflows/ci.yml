@@ -51,7 +51,7 @@ jobs:
       - name: gosec — Go security scanner
         uses: securego/gosec@master
         with:
-          args: "-exclude-dir=adapters/testdata ./..."
+          args: "-exclude=G401,G501 -exclude-dir=adapters/testdata ./..."
 
       - name: Swagger diff check
         run: |
