@@ -43,11 +43,10 @@ jobs:
           path: hivepulse-api/coverage.out
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          working-directory: hivepulse-api
-          version: latest
-          args: --timeout=5m --go=1.24
+        working-directory: hivepulse-api
+        run: |
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          golangci-lint run --timeout=5m
 
       - name: gosec — Go security scanner
         uses: securego/gosec@master
