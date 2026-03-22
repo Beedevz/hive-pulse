@@ -8,4 +8,5 @@ var (
 	ErrUnauthorized   = errors.New("unauthorized")
 	ErrSetupCompleted = errors.New("setup already completed")
 	ErrInvalidInput   = errors.New("invalid input")
+	ErrValidation     = errors.New("validation error")
 )
