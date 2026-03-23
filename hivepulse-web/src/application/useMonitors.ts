@@ -1,12 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../infrastructure/apiClient'
-import type { CreateMonitorPayload, Monitor, PaginatedMonitors } from '../domain/monitor'
+import type { CreateMonitorPayload, Heartbeat, Monitor, PaginatedMonitors } from '../domain/monitor'
 
 export const useMonitors = (page = 1, limit = 20) =>
   useQuery<PaginatedMonitors>({
     queryKey: ['monitors', page, limit],
     queryFn: () =>
       apiClient.get(`/monitors?page=${page}&limit=${limit}`).then((r) => r.data),
+    refetchInterval: 60_000,
+  })
+
+export const useHeartbeats = (monitorID: string) =>
+  useQuery<{ data: Heartbeat[] }>({
+    queryKey: ['heartbeats', monitorID],
+    queryFn: () =>
+      apiClient.get(`/monitors/${monitorID}/heartbeats?limit=48`).then(r => r.data),
+    enabled: !!monitorID,
   })
 
 export const useMonitor = (id: string) =>

@@ -154,6 +154,18 @@ func toMonitorModel(m *domain.Monitor) *monitorModel {
 	}
 }
 
+func (r *MonitorRepo) FindAllEnabled(ctx context.Context) ([]*domain.Monitor, error) {
+	var models []monitorModel
+	if err := r.db.WithContext(ctx).Where("enabled = true").Find(&models).Error; err != nil {
+		return nil, err
+	}
+	result := make([]*domain.Monitor, len(models))
+	for i := range models {
+		result[i] = toDomainMonitor(&models[i])
+	}
+	return result, nil
+}
+
 func toDomainMonitor(m *monitorModel) *domain.Monitor {
 	return &domain.Monitor{
 		ID:              m.ID,

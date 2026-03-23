@@ -31,4 +31,13 @@ export const monitorHandlers = [
     HttpResponse.json({ message: 'monitor updated' })
   ),
   http.delete('/api/v1/monitors/:id', () => new HttpResponse(null, { status: 204 })),
+  http.get('http://localhost:8080/api/v1/monitors/:id/heartbeats', () => {
+    return HttpResponse.json({
+      data: Array.from({ length: 48 }, (_, i) => ({
+        status: i % 5 === 0 ? 'down' : 'up',
+        ping_ms: 40 + i,
+        checked_at: new Date(Date.now() - i * 60000).toISOString(),
+      })),
+    })
+  }),
 ]

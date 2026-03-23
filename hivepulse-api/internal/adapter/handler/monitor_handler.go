@@ -21,9 +21,20 @@ type MonitorService interface {
 	DeleteMonitor(ctx context.Context, id string) error
 }
 
-type MonitorHandler struct{ svc MonitorService }
+// HeartbeatService abstracts heartbeat queries for testability.
+type HeartbeatService interface {
+	FindLatest(ctx context.Context, monitorID string, limit int) ([]*domain.Heartbeat, error)
+	GetUptime(ctx context.Context, monitorID string, since time.Time) (int64, int64, error)
+}
 
-func NewMonitorHandler(svc MonitorService) *MonitorHandler { return &MonitorHandler{svc: svc} }
+type MonitorHandler struct {
+	svc       MonitorService
+	heartbeat HeartbeatService
+}
+
+func NewMonitorHandler(svc MonitorService, heartbeat HeartbeatService) *MonitorHandler {
+	return &MonitorHandler{svc: svc, heartbeat: heartbeat}
+}
 
 type monitorResponse struct {
 	ID         string  `json:"id"`
@@ -42,7 +53,19 @@ type monitorResponse struct {
 	CreatedAt  string  `json:"created_at"`
 }
 
-func toMonitorResponse(m *domain.Monitor) monitorResponse {
+func resolveStats(latest []*domain.Heartbeat, up, total int64) (string, float64) {
+	lastStatus := "unknown"
+	uptime24h := 0.0
+	if len(latest) > 0 {
+		lastStatus = latest[0].Status
+	}
+	if total > 0 {
+		uptime24h = float64(up) / float64(total)
+	}
+	return lastStatus, uptime24h
+}
+
+func toMonitorResponse(m *domain.Monitor, lastStatus string, uptime24h float64) monitorResponse {
 	createdAt := ""
 	if !m.CreatedAt.IsZero() {
 		createdAt = m.CreatedAt.Format(time.RFC3339)
@@ -51,7 +74,7 @@ func toMonitorResponse(m *domain.Monitor) monitorResponse {
 		ID: m.ID, Name: m.Name, CheckType: string(m.CheckType),
 		Interval: m.Interval, Timeout: m.Timeout, Enabled: m.Enabled,
 		URL: m.URL, Host: m.Host, Port: m.Port, PingHost: m.PingHost, DNSHost: m.DNSHost,
-		LastStatus: "unknown", Uptime24h: 0.0, CreatedAt: createdAt,
+		LastStatus: lastStatus, Uptime24h: uptime24h, CreatedAt: createdAt,
 	}
 }
 
@@ -75,7 +98,10 @@ func (h *MonitorHandler) List(c *gin.Context) {
 	}
 	data := make([]monitorResponse, len(monitors))
 	for i, m := range monitors {
-		data[i] = toMonitorResponse(m)
+		latest, _ := h.heartbeat.FindLatest(c.Request.Context(), m.ID, 1)
+		up, total24h, _ := h.heartbeat.GetUptime(c.Request.Context(), m.ID, time.Now().Add(-24*time.Hour))
+		lastStatus, uptime24h := resolveStats(latest, up, total24h)
+		data[i] = toMonitorResponse(m, lastStatus, uptime24h)
 	}
 	c.JSON(http.StatusOK, gin.H{"data": data, "total": total, "page": page, "limit": limit})
 }
@@ -95,7 +121,7 @@ func (h *MonitorHandler) Get(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 		return
 	}
-	c.JSON(http.StatusOK, toMonitorResponse(m))
+	c.JSON(http.StatusOK, toMonitorResponse(m, "unknown", 0.0))
 }
 
 type monitorWriteRequest struct {
@@ -209,4 +235,37 @@ func (h *MonitorHandler) Delete(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusNoContent)
+}
+
+// Heartbeats godoc
+// @Summary      List heartbeats for a monitor
+// @Tags         monitors
+// @Security     Bearer
+// @Param        id    path  string true  "Monitor ID"
+// @Param        limit query int    false "Number of heartbeats" default(48)
+// @Produce      json
+// @Success      200 {object} map[string]interface{}
+// @Failure      500 {object} map[string]string
+// @Router       /monitors/{id}/heartbeats [get]
+func (h *MonitorHandler) Heartbeats(c *gin.Context) {
+	id := c.Param("id")
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "48"))
+	if limit < 1 || limit > 200 {
+		limit = 48
+	}
+	heartbeats, err := h.heartbeat.FindLatest(c.Request.Context(), id, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	type hbResp struct {
+		Status    string `json:"status"`
+		PingMS    int    `json:"ping_ms"`
+		CheckedAt string `json:"checked_at"`
+	}
+	resp := make([]hbResp, len(heartbeats))
+	for i, hb := range heartbeats {
+		resp[i] = hbResp{Status: hb.Status, PingMS: hb.PingMS, CheckedAt: hb.CheckedAt.Format(time.RFC3339)}
+	}
+	c.JSON(http.StatusOK, gin.H{"data": resp})
 }

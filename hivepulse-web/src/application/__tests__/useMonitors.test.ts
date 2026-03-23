@@ -3,15 +3,20 @@ import { describe, it, expect } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { server } from '../../test/msw-server'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useMonitors, useCreateMonitor } from '../useMonitors'
+import { useMonitors, useCreateMonitor, useHeartbeats } from '../useMonitors'
 import React from 'react'
 
-const wrapper = ({ children }: { children: React.ReactNode }) =>
-  React.createElement(
-    QueryClientProvider,
-    { client: new QueryClient({ defaultOptions: { queries: { retry: false } } }) },
-    children
-  )
+const createWrapper = () => {
+  const wrapper = ({ children }: { children: React.ReactNode }) =>
+    React.createElement(
+      QueryClientProvider,
+      { client: new QueryClient({ defaultOptions: { queries: { retry: false } } }) },
+      children
+    )
+  return wrapper
+}
+
+const wrapper = createWrapper()
 
 describe('useMonitors', () => {
   it('fetches paginated monitors list', async () => {
@@ -28,6 +33,17 @@ describe('useMonitors', () => {
     const { result } = renderHook(() => useMonitors(), { wrapper })
     await waitFor(() => expect(result.current.data?.total).toBe(1))
     expect(result.current.data?.data[0]?.name).toBe('Test API')
+  })
+})
+
+describe('useHeartbeats', () => {
+  it('useHeartbeats fetches 48 heartbeats', async () => {
+    const { result } = renderHook(
+      () => useHeartbeats('monitor-1'),
+      { wrapper: createWrapper() }
+    )
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(result.current.data?.data).toHaveLength(48)
   })
 })
 

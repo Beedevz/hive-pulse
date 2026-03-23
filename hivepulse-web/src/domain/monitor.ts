@@ -37,3 +37,17 @@ export interface PaginatedMonitors {
   page: number
   limit: number
 }
+
+export interface HeartbeatEvent {
+  type: 'heartbeat'
+  monitor_id: string
+  status: MonitorStatus
+  ping_ms: number
+  checked_at: string
+}
+
+export interface Heartbeat {
+  status: MonitorStatus
+  ping_ms: number
+  checked_at: string
+}

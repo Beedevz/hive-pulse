@@ -8,6 +8,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -16,7 +17,10 @@ import (
 	"github.com/beedevz/hivepulse/internal/adapter/handler"
 	"github.com/beedevz/hivepulse/internal/adapter/middleware"
 	"github.com/beedevz/hivepulse/internal/adapter/repo"
+	"github.com/beedevz/hivepulse/internal/adapter/service"
 	"github.com/beedevz/hivepulse/internal/domain"
+	infra "github.com/beedevz/hivepulse/internal/infrastructure"
+	"github.com/beedevz/hivepulse/internal/port"
 	"github.com/beedevz/hivepulse/internal/usecase"
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
@@ -38,11 +42,43 @@ func main() {
 	authHandler := handler.NewAuthHandler(authUC, cfg.JWTRefreshExpiry)
 
 	monitorRepo := repo.NewMonitorRepo(db)
-	monitorUC := usecase.NewMonitorUsecase(monitorRepo)
-	monitorHandler := handler.NewMonitorHandler(monitorUC)
+	heartbeatRepo := repo.NewHeartbeatRepo(db)
+
+	hub := infra.NewHub()
+	go hub.Run()
+
+	checkerUC := usecase.NewCheckerUsecase(
+		monitorRepo,
+		heartbeatRepo,
+		map[domain.CheckType]port.CheckerService{
+			domain.CheckHTTP: service.NewHTTPChecker(),
+			domain.CheckTCP:  service.NewTCPChecker(),
+			domain.CheckPING: service.NewPINGChecker(),
+			domain.CheckDNS:  service.NewDNSChecker(),
+		},
+		hub,
+	)
+
+	scheduler := infra.NewScheduler(checkerUC)
+	scheduler.Start()
+
+	ctx := context.Background()
+	enabledMonitors, err := monitorRepo.FindAllEnabled(ctx)
+	if err != nil {
+		log.Printf("warning: could not load monitors for scheduler: %v", err)
+	} else {
+		for _, m := range enabledMonitors {
+			scheduler.Add(m)
+		}
+	}
+
+	monitorUC := usecase.NewMonitorUsecase(monitorRepo, scheduler)
+	monitorHandler := handler.NewMonitorHandler(monitorUC, heartbeatRepo)
 
 	userUC := usecase.NewUserUsecase(userRepo)
 	userHandler := handler.NewUserHandler(userUC)
+
+	wsHandler := handler.NewWSHandler(hub)
 
 	r := gin.Default()
 	r.Use(middleware.CORS(cfg.CORSAllowedOrigins))
@@ -70,6 +106,7 @@ func main() {
 		monitors.Use(jwtAuth)
 		monitors.GET("", monitorHandler.List)
 		monitors.GET("/:id", monitorHandler.Get)
+		monitors.GET("/:id/heartbeats", monitorHandler.Heartbeats)
 		monitors.POST("", editorGuard, monitorHandler.Create)
 		monitors.PUT("/:id", editorGuard, monitorHandler.Update)
 		monitors.DELETE("/:id", editorGuard, monitorHandler.Delete)
@@ -79,7 +116,11 @@ func main() {
 		users.GET("", userHandler.ListUsers)
 		users.PUT("/:id/role", userHandler.UpdateRole)
 		users.DELETE("/:id", userHandler.DeleteUser)
+
+		v1.GET("/ws", jwtAuth, wsHandler.Connect)
 	}
+
+	defer scheduler.Stop()
 
 	addr := fmt.Sprintf(":%s", cfg.APIPort)
 	log.Printf("HivePulse API starting on %s", addr)

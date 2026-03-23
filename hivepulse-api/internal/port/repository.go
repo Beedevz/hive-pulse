@@ -2,6 +2,8 @@ package port
 
 import (
 	"context"
+	"time"
+
 	"github.com/beedevz/hivepulse/internal/domain"
 )
 
@@ -28,4 +30,11 @@ type MonitorRepository interface {
 	FindAll(ctx context.Context, page, limit int) ([]*domain.Monitor, int64, error)
 	Update(ctx context.Context, m *domain.Monitor) error
 	Delete(ctx context.Context, id string) error
+	FindAllEnabled(ctx context.Context) ([]*domain.Monitor, error)
+}
+
+type HeartbeatRepository interface {
+	Create(ctx context.Context, h *domain.Heartbeat) error
+	FindLatest(ctx context.Context, monitorID string, limit int) ([]*domain.Heartbeat, error)
+	GetUptime(ctx context.Context, monitorID string, since time.Time) (int64, int64, error) // up, total
 }

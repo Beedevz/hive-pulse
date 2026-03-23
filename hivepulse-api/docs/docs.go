@@ -482,6 +482,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/monitors/{id}/heartbeats": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "monitors"
+                ],
+                "summary": "List heartbeats for a monitor",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Monitor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 48,
+                        "description": "Number of heartbeats",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "security": [
@@ -644,6 +694,21 @@ const docTemplate = `{
                         }
                     }
                 }
+            }
+        },
+        "/ws": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Connect via ws://host/api/v1/ws?token=\u003caccess_token\u003e",
+                "tags": [
+                    "ws"
+                ],
+                "summary": "WebSocket real-time heartbeat stream",
+                "responses": {}
             }
         }
     },

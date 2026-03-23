@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/beedevz/hivepulse/internal/adapter/handler"
 	"github.com/beedevz/hivepulse/internal/domain"
@@ -39,10 +40,19 @@ func (m *mockMonitorService) DeleteMonitor(ctx context.Context, id string) error
 	return m.Called(ctx, id).Error(0)
 }
 
+type mockHeartbeatService struct{}
+
+func (m *mockHeartbeatService) FindLatest(ctx context.Context, monitorID string, limit int) ([]*domain.Heartbeat, error) {
+	return nil, nil
+}
+func (m *mockHeartbeatService) GetUptime(ctx context.Context, monitorID string, since time.Time) (int64, int64, error) {
+	return 0, 0, nil
+}
+
 func setupMonitorRouter(svc handler.MonitorService) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	h := handler.NewMonitorHandler(svc)
+	h := handler.NewMonitorHandler(svc, &mockHeartbeatService{})
 	r.Use(func(c *gin.Context) {
 		c.Set("userID", "test-user-id")
 		c.Set("role", string(domain.RoleAdmin))
@@ -54,6 +64,7 @@ func setupMonitorRouter(svc handler.MonitorService) *gin.Engine {
 	v1.GET("/monitors/:id", h.Get)
 	v1.PUT("/monitors/:id", h.Update)
 	v1.DELETE("/monitors/:id", h.Delete)
+	v1.GET("/monitors/:id/heartbeats", h.Heartbeats)
 	return r
 }
 

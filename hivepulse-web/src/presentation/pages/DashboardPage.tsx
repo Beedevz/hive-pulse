@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { useMonitors, useCreateMonitor, useUpdateMonitor, useDeleteMonitor } from '../../application/useMonitors'
 import { useMe } from '../../application/useAuth'
+import { useWebSocket } from '../../application/useWebSocket'
 import { MonitorTable } from '../components/MonitorTable'
 import { MonitorModal } from '../components/MonitorModal'
 import { Sidebar } from '../components/Sidebar'
 import type { Monitor, CreateMonitorPayload } from '../../domain/monitor'
 
 export function DashboardPage() {
+  useWebSocket()
+
   const [page, setPage] = useState(1)
   const [modalOpen, setModalOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Monitor | null>(null)

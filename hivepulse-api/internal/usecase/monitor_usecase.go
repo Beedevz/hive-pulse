@@ -39,11 +39,12 @@ type MonitorRequest struct {
 }
 
 type MonitorUsecase struct {
-	repo port.MonitorRepository
+	repo      port.MonitorRepository
+	scheduler port.SchedulerService
 }
 
-func NewMonitorUsecase(repo port.MonitorRepository) *MonitorUsecase {
-	return &MonitorUsecase{repo: repo}
+func NewMonitorUsecase(repo port.MonitorRepository, scheduler port.SchedulerService) *MonitorUsecase {
+	return &MonitorUsecase{repo: repo, scheduler: scheduler}
 }
 
 var validIntervals = map[int]bool{
@@ -119,7 +120,14 @@ func (u *MonitorUsecase) CreateMonitor(ctx context.Context, userID string, req M
 	if err := u.validate(req); err != nil {
 		return err
 	}
-	return u.repo.Create(ctx, reqToMonitor(userID, req))
+	m := reqToMonitor(userID, req)
+	if err := u.repo.Create(ctx, m); err != nil {
+		return err
+	}
+	if m.Enabled {
+		u.scheduler.Add(m)
+	}
+	return nil
 }
 
 func (u *MonitorUsecase) ListMonitors(ctx context.Context, page, limit int) ([]*domain.Monitor, int64, error) {
@@ -142,9 +150,14 @@ func (u *MonitorUsecase) UpdateMonitor(ctx context.Context, id string, req Monit
 	}
 	m := reqToMonitor("", req)
 	m.ID = id
-	return u.repo.Update(ctx, m)
+	if err := u.repo.Update(ctx, m); err != nil {
+		return err
+	}
+	u.scheduler.Update(m)
+	return nil
 }
 
 func (u *MonitorUsecase) DeleteMonitor(ctx context.Context, id string) error {
+	u.scheduler.Remove(id)
 	return u.repo.Delete(ctx, id)
 }

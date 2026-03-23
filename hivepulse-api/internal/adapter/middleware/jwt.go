@@ -11,11 +11,18 @@ import (
 func JWTAuth(secret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		auth := c.GetHeader("Authorization")
+		tokenStr := strings.TrimPrefix(auth, "Bearer ")
 		if !strings.HasPrefix(auth, "Bearer ") {
+			tokenStr = ""
+		}
+		// Fallback for WebSocket connections that cannot set Authorization header
+		if tokenStr == "" {
+			tokenStr = c.Query("token")
+		}
+		if tokenStr == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing token"})
 			return
 		}
-		tokenStr := strings.TrimPrefix(auth, "Bearer ")
 		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
 			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, jwt.ErrSignatureInvalid

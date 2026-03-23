@@ -375,6 +375,38 @@ paths:
       summary: Update monitor
       tags:
       - monitors
+  /monitors/{id}/heartbeats:
+    get:
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 48
+        description: Number of heartbeats
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: List heartbeats for a monitor
+      tags:
+      - monitors
   /users:
     get:
       parameters:
@@ -479,6 +511,15 @@ paths:
       summary: Update user role (admin only)
       tags:
       - users
+  /ws:
+    get:
+      description: Connect via ws://host/api/v1/ws?token=<access_token>
+      responses: {}
+      security:
+      - Bearer: []
+      summary: WebSocket real-time heartbeat stream
+      tags:
+      - ws
 securityDefinitions:
   Bearer:
     in: header
