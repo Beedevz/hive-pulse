@@ -1,2 +1,5 @@
 import { setupServer } from 'msw/node'
-export const server = setupServer()
+import { monitorHandlers } from './handlers/monitors'
+import { userHandlers } from './handlers/users'
+
+export const server = setupServer(...monitorHandlers, ...userHandlers)
