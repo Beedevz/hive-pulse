@@ -58,7 +58,9 @@ func (u *CheckerUsecase) RunCheck(ctx context.Context, monitorID string) {
 	}
 
 	heartbeat.MonitorID = monitorID
-	u.heartbeats.Create(ctx, heartbeat)
+	if err := u.heartbeats.Create(ctx, heartbeat); err != nil {
+		return
+	}
 
 	event, _ := json.Marshal(HeartbeatEvent{
 		Type:      "heartbeat",

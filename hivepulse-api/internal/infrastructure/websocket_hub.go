@@ -100,18 +100,12 @@ func (c *Client) WritePump() {
 		c.hub.unregister <- c
 		c.conn.Close()
 	}()
-	for {
-		select {
-		case msg, ok := <-c.send:
-			if !ok {
-				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
-				return
-			}
-			if err := c.conn.WriteMessage(websocket.TextMessage, msg); err != nil {
-				return
-			}
+	for msg := range c.send {
+		if err := c.conn.WriteMessage(websocket.TextMessage, msg); err != nil {
+			return
 		}
 	}
+	_ = c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 }
 
 func (c *Client) ReadPump() {
