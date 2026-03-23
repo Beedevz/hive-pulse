@@ -3,6 +3,9 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useSetupStatus } from './application/useAuth'
 import { LoginPage } from './presentation/pages/LoginPage'
 import { SetupPage } from './presentation/pages/SetupPage'
+import { DashboardPage } from './presentation/pages/DashboardPage'
+import { SettingsPage } from './presentation/pages/SettingsPage'
+import { PrivateRoute } from './presentation/components/PrivateRoute'
 
 function RootRedirect() {
   const { data, isLoading } = useSetupStatus()
@@ -23,7 +26,8 @@ export default function App() {
       <Route path="/" element={<RootRedirect />} />
       <Route path="/setup" element={<SetupPage />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/dashboard" element={<div>Dashboard — coming in Slice 4</div>} />
+      <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
+      <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
