@@ -1,6 +1,5 @@
-import React from 'react'
-import { Monitor } from '../../domain/monitor'
-import UptimeBar from './UptimeBar'
+import type { Monitor } from '../../domain/monitor'
+import { UptimeBar } from './UptimeBar'
 
 interface MonitorTableProps {
   monitors: Monitor[]
@@ -9,7 +8,7 @@ interface MonitorTableProps {
   currentUserRole: string
 }
 
-export default function MonitorTable({ monitors, onEdit, onDelete, currentUserRole }: MonitorTableProps) {
+export function MonitorTable({ monitors, onEdit, onDelete, currentUserRole }: MonitorTableProps) {
   return (
     <table>
       <thead>

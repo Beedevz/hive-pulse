@@ -1,5 +1,4 @@
-import React from 'react'
-import { User } from '../../domain/user'
+import type { User } from '../../domain/user'
 
 interface UserTableProps {
   users: User[]
@@ -8,7 +7,7 @@ interface UserTableProps {
   onDelete: (id: string) => void
 }
 
-export default function UserTable({ users, currentUserId, onRoleChange, onDelete }: UserTableProps) {
+export function UserTable({ users, currentUserId, onRoleChange, onDelete }: UserTableProps) {
   return (
     <table>
       <thead>
