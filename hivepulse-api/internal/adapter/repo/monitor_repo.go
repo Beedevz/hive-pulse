@@ -34,6 +34,7 @@ type monitorModel struct {
 	RecordType      string
 	ExpectedValue   string
 	DNSServer       string
+	LastStatus      string `gorm:"default:unknown"`
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 }
@@ -191,7 +192,14 @@ func toDomainMonitor(m *monitorModel) *domain.Monitor {
 		RecordType:      m.RecordType,
 		ExpectedValue:   m.ExpectedValue,
 		DNSServer:       m.DNSServer,
+		LastStatus:      m.LastStatus,
 		CreatedAt:       m.CreatedAt,
 		UpdatedAt:       m.UpdatedAt,
 	}
+}
+
+func (r *MonitorRepo) UpdateLastStatus(ctx context.Context, monitorID string, status string) error {
+	return r.db.WithContext(ctx).Model(&monitorModel{}).
+		Where("id = ?", monitorID).
+		Update("last_status", status).Error
 }

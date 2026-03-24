@@ -4,6 +4,9 @@ package repo_test
 
 import (
 	"context"
+	"os"
+	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 
@@ -23,9 +26,17 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		tcpostgres.WithDatabase("hivepulse_test"),
 		tcpostgres.WithUsername("test"),
 		tcpostgres.WithPassword("test"),
+		tcpostgres.BasicWaitStrategies(),
 	)
 	require.NoError(t, err)
 	t.Cleanup(func() { container.Terminate(ctx) })
+
+	// Resolve the hivepulse-api root so RunMigrations can find file://migrations
+	_, callerFile, _, _ := runtime.Caller(0)
+	apiRoot := filepath.Join(filepath.Dir(callerFile), "..", "..", "..")
+	orig, _ := os.Getwd()
+	require.NoError(t, os.Chdir(apiRoot))
+	t.Cleanup(func() { os.Chdir(orig) })
 
 	dsn, _ := container.ConnectionString(ctx, "sslmode=disable")
 	db := infrastructure.NewDatabase(dsn)
@@ -108,4 +119,26 @@ func TestTokenRepo_DeleteExpired(t *testing.T) {
 	ctx := context.Background()
 
 	require.NoError(t, tr.DeleteExpired(ctx))
+}
+
+func TestMonitorRepo_UpdateLastStatus(t *testing.T) {
+	db := setupTestDB(t)
+	r := repo.NewMonitorRepo(db)
+	ctx := context.Background()
+
+	userRepo := repo.NewUserRepo(db)
+	user := &domain.User{Email: "u@ex.com", Name: "U", PasswordHash: "h", Role: domain.RoleAdmin}
+	require.NoError(t, userRepo.Create(ctx, user))
+
+	m := &domain.Monitor{
+		UserID: user.ID, Name: "Mon", CheckType: domain.CheckHTTP,
+		Interval: 60, Timeout: 10, Enabled: true,
+	}
+	require.NoError(t, r.Create(ctx, m))
+
+	require.NoError(t, r.UpdateLastStatus(ctx, m.ID, "down"))
+
+	found, err := r.FindByID(ctx, m.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "down", found.LastStatus)
 }
