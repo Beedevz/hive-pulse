@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { apiClient } from '../infrastructure/apiClient'
 import { useAuthStore } from '../shared/authStore'
@@ -39,3 +40,14 @@ export const useMe = () =>
     queryFn: () => apiClient.get('/auth/me').then((r) => r.data),
     retry: false,
   })
+
+export const useInitAuth = () => {
+  const setToken = useAuthStore((s) => s.setAccessToken)
+  const setHydrated = useAuthStore((s) => s.setHydrated)
+  useEffect(() => {
+    apiClient.post<AuthTokens>('/auth/refresh')
+      .then((r) => setToken(r.data.access_token))
+      .catch(() => {})
+      .finally(() => setHydrated())
+  }, [])
+}

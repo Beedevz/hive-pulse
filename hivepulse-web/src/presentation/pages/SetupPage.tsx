@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Box from '@mui/material/Box'
+import TextField from '@mui/material/TextField'
+import Button from '@mui/material/Button'
+import Typography from '@mui/material/Typography'
+import Stack from '@mui/material/Stack'
+import { Activity } from 'lucide-react'
 import { useSetup } from '../../application/useAuth'
-import { Logo, Wordmark } from '../components/Logo'
-import { Input } from '../components/ui/Input'
-import { Button } from '../components/ui/Button'
-import { useTheme } from '../../shared/useTheme'
 
 export const SetupPage = () => {
-  const { theme } = useTheme()
   const navigate = useNavigate()
   const setup = useSetup()
   const [name, setName] = useState('')
@@ -15,7 +16,7 @@ export const SetupPage = () => {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
     try {
@@ -27,27 +28,79 @@ export const SetupPage = () => {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: theme.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 12,
-        padding: '32px 28px', width: 320, boxShadow: theme.shadow }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
-          <Logo size={28} />
-          <Wordmark size={15} />
-        </div>
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ color: theme.text, fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Initial Setup</div>
-          <div style={{ color: theme.text2, fontSize: 11 }}>Create your admin account to get started.</div>
-        </div>
+    <Box sx={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', p: 3 }}>
+      <Box
+        sx={{
+          width: '100%', maxWidth: 400,
+          bgcolor: 'background.paper',
+          border: '1px solid', borderColor: 'divider',
+          borderRadius: 3,
+          p: 4,
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 4 }}>
+          <Box sx={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            borderRadius: 1.5, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
+            <Activity size={18} color="white" />
+          </Box>
+          <Typography fontWeight={700} fontSize={17} color="text.primary" letterSpacing="-0.01em">
+            HivePulse
+          </Typography>
+        </Box>
+
+        <Typography variant="h6" fontWeight={700} color="text.primary" sx={{ mb: 0.5 }}>
+          Initial Setup
+        </Typography>
+        <Typography color="text.secondary" fontSize="0.875rem" sx={{ mb: 3.5 }}>
+          Create your admin account to get started.
+        </Typography>
+
         <form onSubmit={handleSubmit}>
-          <Input label="Name" value={name} onChange={setName} placeholder="Your name" />
-          <Input label="Email" value={email} onChange={setEmail} placeholder="admin@example.com" type="email" />
-          <Input label="Password" value={password} onChange={setPassword} placeholder="Min 8 characters" type="password" />
-          {error && <div style={{ color: theme.down, fontSize: 11, marginBottom: 8 }}>{error}</div>}
-          <Button type="submit" fullWidth disabled={setup.isPending}>
-            {setup.isPending ? 'Creating...' : 'Create Admin'}
-          </Button>
+          <Stack spacing={2.5}>
+            <TextField
+              id="name"
+              label="Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your name"
+              fullWidth
+              required
+            />
+            <TextField
+              id="email"
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="admin@example.com"
+              fullWidth
+              required
+            />
+            <TextField
+              id="password"
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Min 8 characters"
+              fullWidth
+              required
+            />
+            {error && (
+              <Typography color="error" fontSize="0.8125rem">{error}</Typography>
+            )}
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              size="large"
+              disabled={setup.isPending}
+            >
+              {setup.isPending ? 'Creating…' : 'Create Admin'}
+            </Button>
+          </Stack>
         </form>
-      </div>
-    </div>
+      </Box>
+    </Box>
   )
 }

@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, CheckCircle, Clock, AlertCircle } from 'lucide-react'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import Chip from '@mui/material/Chip'
+import ToggleButton from '@mui/material/ToggleButton'
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import WarningAmberIcon from '@mui/icons-material/WarningAmber'
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
+import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import { useIncidents } from '../../application/useIncidents'
 import type { IncidentFilter } from '../../application/useIncidents'
 import type { Incident } from '../../domain/incident'
@@ -25,218 +33,192 @@ function LiveDuration({ startedAt }: Readonly<{ startedAt: string }>) {
     return () => clearInterval(t)
   }, [startedAt])
   return (
-    <span className="font-mono font-bold text-red-400 text-sm tabular-nums">
+    <Typography component="span" fontFamily="monospace" fontWeight={700} fontSize="0.8125rem" color="error.main">
       {formatDuration(secs)}
-    </span>
+    </Typography>
   )
 }
 
 function ActiveIncidentCard({ inc }: Readonly<{ inc: Incident }>) {
   return (
-    <div
-      className="rounded-xl mb-3"
-      style={{
-        background: 'rgba(239,68,68,0.06)',
-        border: '1px solid rgba(239,68,68,0.25)',
+    <Box
+      sx={{
         borderLeft: '3px solid #f87171',
+        border: '1px solid rgba(239,68,68,0.25)',
+        borderLeftColor: '#f87171',
+        borderLeftWidth: 3,
+        borderRadius: 2,
+        bgcolor: 'rgba(239,68,68,0.04)',
+        mb: 1.5,
+        overflow: 'hidden',
       }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid rgba(239,68,68,0.15)' }}>
-        <div className="flex items-center gap-3">
-          <div
-            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-            style={{ background: '#f87171', boxShadow: '0 0 8px rgba(248,113,113,0.8)' }}
-          />
-          <span className="font-semibold text-white">{inc.monitor_name}</span>
-          <span
-            className="text-xs font-bold px-2 py-0.5 rounded"
-            style={{ background: 'rgba(248,113,113,0.15)', color: '#f87171' }}
-          >
-            DOWN
-          </span>
-        </div>
-        <div className="flex items-center gap-2 text-gray-400 text-xs">
-          <Clock size={12} />
-          <span>Ongoing:</span>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1.5, borderBottom: '1px solid rgba(239,68,68,0.12)' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#f87171', boxShadow: '0 0 8px rgba(248,113,113,0.8)', flexShrink: 0 }} />
+          <Typography fontWeight={600} color="text.primary" fontSize="0.9375rem">{inc.monitor_name}</Typography>
+          <Chip label="DOWN" size="small" color="error" sx={{ fontSize: '0.6875rem', fontWeight: 700, height: 20 }} />
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, color: 'text.secondary' }}>
+          <AccessTimeIcon sx={{ fontSize: 14 }} />
+          <Typography fontSize="0.8125rem" color="text.secondary">Ongoing:</Typography>
           <LiveDuration startedAt={inc.started_at} />
-        </div>
-      </div>
+        </Box>
+      </Box>
 
-      {/* Error reason — the most important info */}
+      {/* Error message */}
       {inc.error_msg && (
-        <div className="flex items-start gap-2 px-4 py-2.5" style={{ borderBottom: '1px solid rgba(239,68,68,0.1)' }}>
-          <AlertCircle size={14} className="text-red-400 mt-0.5 flex-shrink-0" />
-          <span className="text-sm text-red-300 font-medium">{inc.error_msg}</span>
-        </div>
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, px: 2, py: 1.25, borderBottom: '1px solid rgba(239,68,68,0.08)' }}>
+          <ErrorOutlineIcon sx={{ fontSize: 15, color: 'error.main', mt: 0.1, flexShrink: 0 }} />
+          <Typography fontSize="0.875rem" color="error.light" fontWeight={500}>{inc.error_msg}</Typography>
+        </Box>
       )}
 
       {/* Meta */}
-      <div className="flex items-center gap-6 px-4 py-2.5 text-xs text-gray-500">
-        <span>Started: <span className="text-gray-400">{new Date(inc.started_at).toLocaleString()}</span></span>
-      </div>
-    </div>
+      <Box sx={{ px: 2, py: 1.25 }}>
+        <Typography fontSize="0.8125rem" color="text.secondary">
+          Started: <Box component="span" sx={{ color: 'text.primary' }}>{new Date(inc.started_at).toLocaleString()}</Box>
+        </Typography>
+      </Box>
+    </Box>
   )
 }
 
 function ResolvedIncidentCard({ inc }: Readonly<{ inc: Incident }>) {
   return (
-    <div
-      className="rounded-xl mb-3"
-      style={{
-        background: 'rgba(17,24,39,0.6)',
-        border: '1px solid #1f2937',
+    <Box
+      sx={{
         borderLeft: '3px solid #4ade80',
+        border: '1px solid',
+        borderColor: 'divider',
+        borderLeftColor: '#4ade80',
+        borderLeftWidth: 3,
+        borderRadius: 2,
+        bgcolor: 'background.paper',
+        mb: 1.5,
       }}
     >
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-3">
-          <CheckCircle size={14} className="text-green-400 flex-shrink-0" />
-          <span className="font-medium text-gray-300">{inc.monitor_name}</span>
-          <span
-            className="text-xs font-bold px-2 py-0.5 rounded"
-            style={{ background: 'rgba(74,222,128,0.1)', color: '#4ade80' }}
-          >
-            RESOLVED
-          </span>
-        </div>
-        <div className="text-right">
-          <div className="text-xs font-semibold text-green-400">
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <CheckCircleOutlineIcon sx={{ fontSize: 16, color: 'success.main', flexShrink: 0 }} />
+          <Typography fontWeight={500} color="text.primary" fontSize="0.9375rem">{inc.monitor_name}</Typography>
+          <Chip label="RESOLVED" size="small" color="success" sx={{ fontSize: '0.6875rem', fontWeight: 700, height: 20 }} />
+        </Box>
+        <Box sx={{ textAlign: 'right' }}>
+          <Typography fontSize="0.8125rem" fontWeight={600} color="success.main">
             Downtime: {formatDuration(inc.duration_s)}
-          </div>
-          <div className="text-xs text-gray-600 mt-0.5">
+          </Typography>
+          <Typography fontSize="0.75rem" color="text.secondary">
             {new Date(inc.started_at).toLocaleTimeString()} → {inc.resolved_at ? new Date(inc.resolved_at).toLocaleTimeString() : ''}
-          </div>
-        </div>
-      </div>
-
+          </Typography>
+        </Box>
+      </Box>
       {inc.error_msg && (
-        <div className="flex items-center gap-2 px-4 pb-2.5 text-xs text-gray-500">
-          <AlertCircle size={12} className="flex-shrink-0" />
-          <span>{inc.error_msg}</span>
-        </div>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, pb: 1.5 }}>
+          <ErrorOutlineIcon sx={{ fontSize: 13, color: 'text.secondary', flexShrink: 0 }} />
+          <Typography fontSize="0.8125rem" color="text.secondary">{inc.error_msg}</Typography>
+        </Box>
       )}
-    </div>
+    </Box>
   )
 }
 
 export function AlertsPage() {
   const [filter, setFilter] = useState<IncidentFilter>('all')
-  const { data: activeData, isLoading: loadingActive } = useIncidents('active')
+  const { data: activeData,   isLoading: loadingActive }   = useIncidents('active')
   const { data: resolvedData, isLoading: loadingResolved } = useIncidents('resolved')
 
-  const activeIncidents = activeData?.data ?? []
+  const activeIncidents   = activeData?.data ?? []
   const resolvedIncidents = resolvedData?.data ?? []
-
-  const showActive = filter === 'all' || filter === 'active'
+  const showActive   = filter === 'all' || filter === 'active'
   const showResolved = filter === 'all' || filter === 'resolved'
 
-  const filters: { f: IncidentFilter; label: string }[] = [
-    { f: 'all', label: 'All' },
-    { f: 'active', label: 'Active' },
-    { f: 'resolved', label: 'Resolved' },
-  ]
-
   return (
-    <div className="flex min-h-screen" style={{ background: '#0d0f14' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar />
 
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Page header */}
-        <div
-          className="flex items-center justify-between px-8 py-5"
-          style={{ borderBottom: '1px solid #1f2937' }}
-        >
-          <div>
-            <h1 className="text-lg font-semibold text-white">Alerts</h1>
-            <p className="text-sm text-gray-500 mt-0.5">
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        {/* Header */}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 4, py: 2.5, borderBottom: '1px solid', borderColor: 'divider' }}>
+          <Box>
+            <Typography variant="h6" fontWeight={600} color="text.primary" fontSize="1.0625rem">Alerts</Typography>
+            <Typography variant="body2" fontSize="0.8125rem">
               {activeIncidents.length > 0
-                ? <span className="text-red-400">{activeIncidents.length} active incident{activeIncidents.length > 1 ? 's' : ''}</span>
-                : 'No active incidents'}
-            </p>
-          </div>
+                ? <Box component="span" sx={{ color: 'error.main' }}>{activeIncidents.length} active incident{activeIncidents.length > 1 ? 's' : ''}</Box>
+                : <Box component="span" sx={{ color: 'text.secondary' }}>No active incidents</Box>
+              }
+            </Typography>
+          </Box>
 
-          {/* Filter tabs */}
-          <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: '#1a1d27' }}>
-            {filters.map(({ f, label }) => (
-              <button
-                key={f}
-                aria-label={label}
-                onClick={() => setFilter(f)}
-                className="px-4 py-1.5 rounded-md text-sm font-medium transition-colors"
-                style={
-                  filter === f
-                    ? { background: '#374151', color: '#f9fafb' }
-                    : { color: '#6b7280' }
-                }
-              >
-                {label}
-                {f === 'active' && activeIncidents.length > 0 && (
-                  <span
-                    className="ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full"
-                    style={{ background: 'rgba(248,113,113,0.2)', color: '#f87171' }}
-                  >
-                    {activeIncidents.length}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
+          <ToggleButtonGroup
+            value={filter}
+            exclusive
+            onChange={(_, v) => { if (v) setFilter(v) }}
+            size="small"
+            sx={{ '& .MuiToggleButton-root': { textTransform: 'none', fontSize: '0.8125rem', px: 2, py: 0.75, color: 'text.secondary', borderColor: 'divider' } }}
+          >
+            <ToggleButton value="all">All</ToggleButton>
+            <ToggleButton value="active" aria-label="Active">
+              Active
+              {activeIncidents.length > 0 && (
+                <Chip label={activeIncidents.length} size="small" color="error" sx={{ ml: 0.75, height: 18, fontSize: '0.6875rem', fontWeight: 700 }} />
+              )}
+            </ToggleButton>
+            <ToggleButton value="resolved" aria-label="Resolved">Resolved</ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
 
         {/* Content */}
-        <main className="flex-1 px-8 py-6" style={{ maxWidth: 800 }}>
+        <Box sx={{ flex: 1, px: 4, py: 3 }}>
           {showActive && (
-            <section className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <AlertTriangle size={14} className="text-red-400" />
-                <span className="text-xs font-bold text-red-400 uppercase tracking-wider">
+            <Box sx={{ mb: 4 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <WarningAmberIcon sx={{ fontSize: 15, color: 'error.main' }} />
+                <Typography fontSize="0.75rem" fontWeight={700} color="error.main" sx={{ textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   Active Incidents
-                </span>
-                <span className="text-xs text-gray-600">({activeIncidents.length})</span>
-              </div>
+                </Typography>
+                <Typography fontSize="0.75rem" color="text.secondary">({activeIncidents.length})</Typography>
+              </Box>
 
-              {loadingActive && <p className="text-gray-500 text-sm">Loading…</p>}
+              {loadingActive && <Typography color="text.secondary" fontSize="0.875rem">Loading…</Typography>}
 
               {!loadingActive && activeIncidents.length === 0 && (
-                <div
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-gray-500"
-                  style={{ background: '#111827', border: '1px solid #1f2937' }}
-                >
-                  <CheckCircle size={14} className="text-green-500" />
-                  All monitors are up — no active incidents.
-                </div>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 1.5, borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'background.default' }}>
+                  <CheckCircleOutlineIcon sx={{ fontSize: 15, color: 'success.main' }} />
+                  <Typography fontSize="0.875rem" color="text.secondary">All monitors are up — no active incidents.</Typography>
+                </Box>
               )}
 
-              {!loadingActive && activeIncidents.map(inc => (
+              {!loadingActive && activeIncidents.map((inc) => (
                 <ActiveIncidentCard key={inc.id} inc={inc} />
               ))}
-            </section>
+            </Box>
           )}
 
           {showResolved && (
-            <section>
-              <div className="flex items-center gap-2 mb-4">
-                <CheckCircle size={14} className="text-green-400" />
-                <span className="text-xs font-bold text-green-400 uppercase tracking-wider">
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <CheckCircleOutlineIcon sx={{ fontSize: 15, color: 'success.main' }} />
+                <Typography fontSize="0.75rem" fontWeight={700} color="success.main" sx={{ textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   Resolved
-                </span>
-                <span className="text-xs text-gray-600">({resolvedIncidents.length})</span>
-              </div>
+                </Typography>
+                <Typography fontSize="0.75rem" color="text.secondary">({resolvedIncidents.length})</Typography>
+              </Box>
 
-              {loadingResolved && <p className="text-gray-500 text-sm">Loading…</p>}
+              {loadingResolved && <Typography color="text.secondary" fontSize="0.875rem">Loading…</Typography>}
 
               {!loadingResolved && resolvedIncidents.length === 0 && (
-                <p className="text-gray-500 text-sm">No resolved incidents.</p>
+                <Typography color="text.secondary" fontSize="0.875rem">No resolved incidents.</Typography>
               )}
 
-              {!loadingResolved && resolvedIncidents.map(inc => (
+              {!loadingResolved && resolvedIncidents.map((inc) => (
                 <ResolvedIncidentCard key={inc.id} inc={inc} />
               ))}
-            </section>
+            </Box>
           )}
-        </main>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   )
 }

@@ -26,3 +26,5 @@ hivepulse-web/.env.*.local
 .worktrees/
 CLAUDE.md
 docs/superpowers/
+.claude
+.DS_Store

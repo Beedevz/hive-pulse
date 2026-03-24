@@ -1,24 +1,48 @@
-type BlockStatus = 'up' | 'down' | 'slow' | 'unknown'
+import { useTheme } from '@mui/material/styles'
+import { colors } from '../../shared/colors'
 
-const colorMap: Record<BlockStatus, string> = {
-  up:      'bg-green-500',
-  down:    'bg-red-500',
-  slow:    'bg-yellow-400',
-  unknown: 'bg-gray-300 dark:bg-gray-600',
-}
+type BlockStatus = 'up' | 'down' | 'slow' | 'unknown'
 
 interface UptimeBarProps {
   blocks: BlockStatus[]
 }
 
-export function UptimeBar({ blocks }: UptimeBarProps) {
+export function UptimeBar({ blocks }: Readonly<UptimeBarProps>) {
+  const theme = useTheme()
+  const isDark = theme.palette.mode === 'dark'
+
+  const colorMap: Record<BlockStatus, string> = {
+    up:      isDark ? colors.up   : colors.upL,
+    down:    isDark ? colors.down : colors.downL,
+    slow:    isDark ? colors.slow : colors.slowL,
+    unknown: isDark ? colors.darkTextTertiary : colors.lightTextTertiary,
+  }
+
+  const items = blocks.map((status, i) => ({ key: `b${i}`, status }))
+
   return (
     <div
-      style={{ display: 'grid', gridTemplateColumns: 'repeat(48, 1fr)', gap: '1px' }}
-      className="h-6 w-full rounded overflow-hidden"
+      style={{
+        display: 'flex',
+        gap: 1.5,
+        alignItems: 'flex-end',
+        height: 20,
+        width: '100%',
+      }}
     >
-      {blocks.map((status, i) => (
-        <div key={i} className={`${colorMap[status]} h-full`} title={status} />
+      {items.map(({ key, status }) => (
+        <div
+          key={key}
+          title={status}
+          style={{
+            flex: 1,
+            height: status === 'up' ? 20 : 14,
+            backgroundColor: colorMap[status],
+            borderRadius: 1.5,
+            // UP blocks are muted via opacity (matches mockup: opacity:.4 for up, 1 for others)
+            opacity: status === 'up' ? 0.4 : 1,
+          }}
+        />
       ))}
     </div>
   )

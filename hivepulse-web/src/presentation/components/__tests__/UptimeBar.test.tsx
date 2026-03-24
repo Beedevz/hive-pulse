@@ -12,17 +12,17 @@ describe('UptimeBar', () => {
     expect(grid.children).toHaveLength(48)
   })
 
-  it('applies green class for up blocks', () => {
+  it('applies green color for up blocks', () => {
     const blocks = Array(48).fill('up') as BlockStatus[]
     const { container } = render(<UptimeBar blocks={blocks} />)
     const firstBlock = container.firstChild!.firstChild as HTMLElement
-    expect(firstBlock.className).toContain('bg-green')
+    expect(firstBlock.style.backgroundColor).toBe('rgb(34, 197, 94)')
   })
 
-  it('applies red class for down blocks', () => {
+  it('applies red color for down blocks', () => {
     const blocks: BlockStatus[] = ['down', ...Array(47).fill('unknown') as BlockStatus[]]
     const { container } = render(<UptimeBar blocks={blocks} />)
     const firstBlock = container.firstChild!.firstChild as HTMLElement
-    expect(firstBlock.className).toContain('bg-red')
+    expect(firstBlock.style.backgroundColor).toBe('rgb(239, 68, 68)')
   })
 })

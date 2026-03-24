@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
-import { useSetupStatus } from './application/useAuth'
+import { useSetupStatus, useInitAuth } from './application/useAuth'
 import { LoginPage } from './presentation/pages/LoginPage'
 import { SetupPage } from './presentation/pages/SetupPage'
 import { DashboardPage } from './presentation/pages/DashboardPage'
@@ -22,6 +22,7 @@ function RootRedirect() {
 }
 
 export default function App() {
+  useInitAuth()
   return (
     <Routes>
       <Route path="/" element={<RootRedirect />} />

@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
+import TextField from '@mui/material/TextField'
+import InputAdornment from '@mui/material/InputAdornment'
+import SearchIcon from '@mui/icons-material/Search'
 
 interface MonitorSearchProps {
   onSearch: (term: string) => void
 }
 
-export function MonitorSearch({ onSearch }: MonitorSearchProps) {
+export function MonitorSearch({ onSearch }: Readonly<MonitorSearchProps>) {
   const [value, setValue] = useState('')
 
   useEffect(() => {
@@ -13,12 +16,21 @@ export function MonitorSearch({ onSearch }: MonitorSearchProps) {
   }, [value, onSearch])
 
   return (
-    <input
-      type="text"
+    <TextField
+      fullWidth
+      size="small"
       value={value}
       onChange={(e) => setValue(e.target.value)}
       placeholder="Search monitors…"
-      className="w-full px-3 py-2 rounded border border-gray-700 bg-gray-800 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500"
+      slotProps={{
+        input: {
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+            </InputAdornment>
+          ),
+        },
+      }}
     />
   )
 }

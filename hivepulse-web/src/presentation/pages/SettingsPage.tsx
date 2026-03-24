@@ -1,51 +1,65 @@
 import { useState } from 'react'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import Tab from '@mui/material/Tab'
+import Tabs from '@mui/material/Tabs'
 import { useUsers, useUpdateUserRole, useDeleteUser } from '../../application/useUsers'
 import { useMe } from '../../application/useAuth'
 import { UserTable } from '../components/UserTable'
 import { Sidebar } from '../components/Sidebar'
 
 export function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'general' | 'users'>('general')
+  const [tab, setTab] = useState(0)
   const { data: me } = useMe()
   const { data: usersData } = useUsers(1, 50)
   const updateRoleMutation = useUpdateUserRole()
   const deleteUserMutation = useDeleteUser()
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar />
-      <main className="flex-1 p-6">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Settings</h1>
-        <div className="flex gap-4 border-b border-gray-200 dark:border-gray-700 mb-6">
-          <button
-            onClick={() => setActiveTab('general')}
-            className={`pb-2 text-sm font-medium ${activeTab === 'general' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
+
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <Box sx={{ px: 4, py: 2.5, borderBottom: '1px solid', borderColor: 'divider' }}>
+          <Typography variant="h6" fontWeight={600} color="text.primary" fontSize="1.0625rem">
+            Settings
+          </Typography>
+          <Typography variant="body2" color="text.secondary" fontSize="0.8125rem">
+            Manage users and workspace settings
+          </Typography>
+        </Box>
+
+        <Box sx={{ flex: 1, px: 4, py: 3 }}>
+          <Tabs
+            value={tab}
+            onChange={(_, v) => setTab(v)}
+            sx={{
+              mb: 3,
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+              '& .MuiTab-root': { textTransform: 'none', fontSize: '0.875rem', minHeight: 40, py: 1 },
+            }}
           >
-            General
-          </button>
-          {me?.role === 'admin' && (
-            <button
-              onClick={() => setActiveTab('users')}
-              className={`pb-2 text-sm font-medium ${activeTab === 'users' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
-            >
-              Users
-            </button>
+            <Tab label="General" />
+            {me?.role === 'admin' && <Tab label="Users" />}
+          </Tabs>
+
+          {tab === 0 && (
+            <Typography color="text.secondary" fontSize="0.875rem">
+              General settings — coming in a future slice.
+            </Typography>
           )}
-        </div>
 
-        {activeTab === 'general' && (
-          <p className="text-gray-500 text-sm">General settings — coming in a future slice.</p>
-        )}
-
-        {activeTab === 'users' && me?.role === 'admin' && (
-          <UserTable
-            users={usersData?.data ?? []}
-            currentUserId={me.id}
-            onRoleChange={(id, role) => updateRoleMutation.mutate({ id, role })}
-            onDelete={id => deleteUserMutation.mutate(id)}
-          />
-        )}
-      </main>
-    </div>
+          {tab === 1 && me?.role === 'admin' && (
+            <UserTable
+              users={usersData?.data ?? []}
+              currentUserId={me.id}
+              onRoleChange={(id, role) => updateRoleMutation.mutate({ id, role })}
+              onDelete={(id) => deleteUserMutation.mutate(id)}
+            />
+          )}
+        </Box>
+      </Box>
+    </Box>
   )
 }

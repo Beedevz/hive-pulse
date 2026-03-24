@@ -35,6 +35,6 @@ describe('LoginPage', () => {
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'bad@email.com' } })
     fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'wrong' } })
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
-    await waitFor(() => expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText(/invalid email or password/i)).toBeInTheDocument())
   })
 })

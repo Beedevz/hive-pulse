@@ -50,23 +50,21 @@ describe('MonitorCard', () => {
     expect(screen.getByText(/99\.9%/)).toBeInTheDocument()
   })
 
-  it('applies green border for up status', () => {
-    const { container } = render(
+  it('shows UP chip for up status', () => {
+    render(
       <MonitorCard monitor={baseMonitor} currentUserRole="admin" onEdit={vi.fn()} onDelete={vi.fn()} />,
       { wrapper }
     )
-    const card = container.firstChild as HTMLElement
-    expect(card.style.borderLeftColor).toBe('rgb(74, 222, 128)')
+    expect(screen.getByText('UP')).toBeInTheDocument()
   })
 
-  it('applies red border for down status', () => {
+  it('shows DOWN chip for down status', () => {
     const downMonitor = { ...baseMonitor, last_status: 'down' as const }
-    const { container } = render(
+    render(
       <MonitorCard monitor={downMonitor} currentUserRole="admin" onEdit={vi.fn()} onDelete={vi.fn()} />,
       { wrapper }
     )
-    const card = container.firstChild as HTMLElement
-    expect(card.style.borderLeftColor).toBe('rgb(248, 113, 113)')
+    expect(screen.getByText('DOWN')).toBeInTheDocument()
   })
 
   it('hides edit/delete buttons for viewer role', () => {
