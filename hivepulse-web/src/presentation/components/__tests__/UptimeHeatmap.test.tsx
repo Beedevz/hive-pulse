@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
 import { UptimeHeatmap } from '../UptimeHeatmap'
-import { StatsBucket } from '../../../domain/stats'
+import type { StatsBucket } from '../../../domain/stats'
 
 describe('UptimeHeatmap', () => {
   it('renders correct number of squares', () => {

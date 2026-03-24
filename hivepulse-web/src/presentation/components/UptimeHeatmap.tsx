@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
-import { StatsBucket } from '../../domain/stats'
+import type { StatsBucket } from '../../domain/stats'
 
 interface Props {
   buckets: StatsBucket[]

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { ResponseTimeChart } from '../ResponseTimeChart'
-import { StatsBucket } from '../../../domain/stats'
+import type { StatsBucket } from '../../../domain/stats'
 
 vi.mock('recharts', () => ({
   ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (

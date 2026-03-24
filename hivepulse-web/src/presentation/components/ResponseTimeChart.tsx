@@ -1,6 +1,6 @@
 import Typography from '@mui/material/Typography'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { StatsBucket, StatsRange } from '../../domain/stats'
+import type { StatsBucket, StatsRange } from '../../domain/stats'
 
 interface Props {
   buckets: StatsBucket[]
