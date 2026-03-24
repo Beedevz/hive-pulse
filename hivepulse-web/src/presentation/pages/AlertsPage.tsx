@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react'
+import { AlertTriangle, CheckCircle, Clock, AlertCircle } from 'lucide-react'
 import { useIncidents } from '../../application/useIncidents'
 import type { IncidentFilter } from '../../application/useIncidents'
 import type { Incident } from '../../domain/incident'
 import { Sidebar } from '../components/Sidebar'
 
 function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60)
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
   const s = seconds % 60
-  return m > 0 ? `${m}m ${s}s` : `${s}s`
+  if (h > 0) return `${h}h ${m}m`
+  if (m > 0) return `${m}m ${s}s`
+  return `${s}s`
 }
 
-function LiveDuration({ startedAt }: { startedAt: string }) {
+function LiveDuration({ startedAt }: Readonly<{ startedAt: string }>) {
   const [secs, setSecs] = useState(
     Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000)
   )
@@ -20,52 +24,106 @@ function LiveDuration({ startedAt }: { startedAt: string }) {
     }, 1000)
     return () => clearInterval(t)
   }, [startedAt])
-  return <span className="font-bold text-red-400">{formatDuration(secs)}</span>
+  return (
+    <span className="font-mono font-bold text-red-400 text-sm tabular-nums">
+      {formatDuration(secs)}
+    </span>
+  )
 }
 
-function ActiveIncidentCard({ inc }: { inc: Incident }) {
+function ActiveIncidentCard({ inc }: Readonly<{ inc: Incident }>) {
   return (
-    <div className="bg-red-950/40 border border-red-500/30 rounded-lg p-3 mb-3">
-      <div className="flex justify-between items-start mb-2">
-        <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-red-400" style={{ boxShadow: '0 0 6px rgba(248,113,113,0.8)' }} />
-          <span className="font-bold text-white text-sm">{inc.monitor_name}</span>
-          <span className="text-xs bg-red-900/50 text-red-400 px-1.5 py-0.5 rounded font-bold">DOWN</span>
+    <div
+      className="rounded-xl mb-3"
+      style={{
+        background: 'rgba(239,68,68,0.06)',
+        border: '1px solid rgba(239,68,68,0.25)',
+        borderLeft: '3px solid #f87171',
+      }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid rgba(239,68,68,0.15)' }}>
+        <div className="flex items-center gap-3">
+          <div
+            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+            style={{ background: '#f87171', boxShadow: '0 0 8px rgba(248,113,113,0.8)' }}
+          />
+          <span className="font-semibold text-white">{inc.monitor_name}</span>
+          <span
+            className="text-xs font-bold px-2 py-0.5 rounded"
+            style={{ background: 'rgba(248,113,113,0.15)', color: '#f87171' }}
+          >
+            DOWN
+          </span>
         </div>
-        <LiveDuration startedAt={inc.started_at} />
+        <div className="flex items-center gap-2 text-gray-400 text-xs">
+          <Clock size={12} />
+          <span>Ongoing:</span>
+          <LiveDuration startedAt={inc.started_at} />
+        </div>
       </div>
-      <div className="text-xs text-gray-400 space-x-4">
-        <span>Started: {new Date(inc.started_at).toLocaleTimeString()}</span>
-        {inc.error_msg && <span className="text-red-300">{inc.error_msg}</span>}
+
+      {/* Error reason — the most important info */}
+      {inc.error_msg && (
+        <div className="flex items-start gap-2 px-4 py-2.5" style={{ borderBottom: '1px solid rgba(239,68,68,0.1)' }}>
+          <AlertCircle size={14} className="text-red-400 mt-0.5 flex-shrink-0" />
+          <span className="text-sm text-red-300 font-medium">{inc.error_msg}</span>
+        </div>
+      )}
+
+      {/* Meta */}
+      <div className="flex items-center gap-6 px-4 py-2.5 text-xs text-gray-500">
+        <span>Started: <span className="text-gray-400">{new Date(inc.started_at).toLocaleString()}</span></span>
       </div>
     </div>
   )
 }
 
-function ResolvedIncidentCard({ inc }: { inc: Incident }) {
+function ResolvedIncidentCard({ inc }: Readonly<{ inc: Incident }>) {
   return (
-    <div className="bg-green-950/20 border border-green-500/20 rounded-lg p-3 mb-3">
-      <div className="flex justify-between items-center mb-1">
-        <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
-          <span className="font-medium text-gray-300 text-sm">{inc.monitor_name}</span>
-          <span className="text-xs bg-green-900/30 text-green-400 px-1.5 py-0.5 rounded font-bold">RESOLVED</span>
+    <div
+      className="rounded-xl mb-3"
+      style={{
+        background: 'rgba(17,24,39,0.6)',
+        border: '1px solid #1f2937',
+        borderLeft: '3px solid #4ade80',
+      }}
+    >
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-3">
+          <CheckCircle size={14} className="text-green-400 flex-shrink-0" />
+          <span className="font-medium text-gray-300">{inc.monitor_name}</span>
+          <span
+            className="text-xs font-bold px-2 py-0.5 rounded"
+            style={{ background: 'rgba(74,222,128,0.1)', color: '#4ade80' }}
+          >
+            RESOLVED
+          </span>
         </div>
-        <span className="text-green-400 text-xs font-semibold">
-          Downtime: {formatDuration(inc.duration_s)}
-        </span>
+        <div className="text-right">
+          <div className="text-xs font-semibold text-green-400">
+            Downtime: {formatDuration(inc.duration_s)}
+          </div>
+          <div className="text-xs text-gray-600 mt-0.5">
+            {new Date(inc.started_at).toLocaleTimeString()} → {inc.resolved_at ? new Date(inc.resolved_at).toLocaleTimeString() : ''}
+          </div>
+        </div>
       </div>
-      <div className="text-xs text-gray-500">
-        {new Date(inc.started_at).toLocaleTimeString()} → {inc.resolved_at ? new Date(inc.resolved_at).toLocaleTimeString() : ''}
-      </div>
+
+      {inc.error_msg && (
+        <div className="flex items-center gap-2 px-4 pb-2.5 text-xs text-gray-500">
+          <AlertCircle size={12} className="flex-shrink-0" />
+          <span>{inc.error_msg}</span>
+        </div>
+      )}
     </div>
   )
 }
 
 export function AlertsPage() {
   const [filter, setFilter] = useState<IncidentFilter>('all')
-  const { data: activeData } = useIncidents('active')
-  const { data: resolvedData } = useIncidents('resolved')
+  const { data: activeData, isLoading: loadingActive } = useIncidents('active')
+  const { data: resolvedData, isLoading: loadingResolved } = useIncidents('resolved')
 
   const activeIncidents = activeData?.data ?? []
   const resolvedIncidents = resolvedData?.data ?? []
@@ -73,65 +131,112 @@ export function AlertsPage() {
   const showActive = filter === 'all' || filter === 'active'
   const showResolved = filter === 'all' || filter === 'resolved'
 
-  const filterBtn = (f: IncidentFilter, label: string) => (
-    <button
-      onClick={() => setFilter(f)}
-      className={`px-3 py-1 rounded text-xs font-semibold ${
-        filter === f
-          ? 'bg-gray-600 text-white'
-          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-      }`}
-    >
-      {label}
-    </button>
-  )
+  const filters: { f: IncidentFilter; label: string }[] = [
+    { f: 'all', label: 'All' },
+    { f: 'active', label: 'Active' },
+    { f: 'resolved', label: 'Resolved' },
+  ]
 
   return (
-    <div className="flex min-h-screen bg-gray-900">
+    <div className="flex min-h-screen" style={{ background: '#0d0f14' }}>
       <Sidebar />
-      <main className="flex-1 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold text-white">Alerts</h1>
-            {activeIncidents.length > 0 && (
-              <span className="text-xs bg-red-900/50 text-red-400 px-2 py-0.5 rounded-full font-bold">
-                {activeIncidents.length} active
-              </span>
-            )}
+
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Page header */}
+        <div
+          className="flex items-center justify-between px-8 py-5"
+          style={{ borderBottom: '1px solid #1f2937' }}
+        >
+          <div>
+            <h1 className="text-lg font-semibold text-white">Alerts</h1>
+            <p className="text-sm text-gray-500 mt-0.5">
+              {activeIncidents.length > 0
+                ? <span className="text-red-400">{activeIncidents.length} active incident{activeIncidents.length > 1 ? 's' : ''}</span>
+                : 'No active incidents'}
+            </p>
           </div>
-          <div className="flex gap-2">
-            {filterBtn('all', 'All')}
-            {filterBtn('active', 'Active')}
-            {filterBtn('resolved', 'Resolved')}
+
+          {/* Filter tabs */}
+          <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: '#1a1d27' }}>
+            {filters.map(({ f, label }) => (
+              <button
+                key={f}
+                aria-label={label}
+                onClick={() => setFilter(f)}
+                className="px-4 py-1.5 rounded-md text-sm font-medium transition-colors"
+                style={
+                  filter === f
+                    ? { background: '#374151', color: '#f9fafb' }
+                    : { color: '#6b7280' }
+                }
+              >
+                {label}
+                {f === 'active' && activeIncidents.length > 0 && (
+                  <span
+                    className="ml-1.5 text-xs font-bold px-1.5 py-0.5 rounded-full"
+                    style={{ background: 'rgba(248,113,113,0.2)', color: '#f87171' }}
+                  >
+                    {activeIncidents.length}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
         </div>
 
-        {showActive && (
-          <div className="mb-6">
-            <div className="text-xs font-bold text-red-400 uppercase tracking-wider mb-3">
-              🔴 Active ({activeIncidents.length})
-            </div>
-            {activeIncidents.length === 0 ? (
-              <div className="text-gray-500 text-sm">No active incidents.</div>
-            ) : (
-              activeIncidents.map(inc => <ActiveIncidentCard key={inc.id} inc={inc} />)
-            )}
-          </div>
-        )}
+        {/* Content */}
+        <main className="flex-1 px-8 py-6" style={{ maxWidth: 800 }}>
+          {showActive && (
+            <section className="mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <AlertTriangle size={14} className="text-red-400" />
+                <span className="text-xs font-bold text-red-400 uppercase tracking-wider">
+                  Active Incidents
+                </span>
+                <span className="text-xs text-gray-600">({activeIncidents.length})</span>
+              </div>
 
-        {showResolved && (
-          <div>
-            <div className="text-xs font-bold text-green-400 uppercase tracking-wider mb-3">
-              ✓ Resolved ({resolvedIncidents.length})
-            </div>
-            {resolvedIncidents.length === 0 ? (
-              <div className="text-gray-500 text-sm">No resolved incidents.</div>
-            ) : (
-              resolvedIncidents.map(inc => <ResolvedIncidentCard key={inc.id} inc={inc} />)
-            )}
-          </div>
-        )}
-      </main>
+              {loadingActive && <p className="text-gray-500 text-sm">Loading…</p>}
+
+              {!loadingActive && activeIncidents.length === 0 && (
+                <div
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-gray-500"
+                  style={{ background: '#111827', border: '1px solid #1f2937' }}
+                >
+                  <CheckCircle size={14} className="text-green-500" />
+                  All monitors are up — no active incidents.
+                </div>
+              )}
+
+              {!loadingActive && activeIncidents.map(inc => (
+                <ActiveIncidentCard key={inc.id} inc={inc} />
+              ))}
+            </section>
+          )}
+
+          {showResolved && (
+            <section>
+              <div className="flex items-center gap-2 mb-4">
+                <CheckCircle size={14} className="text-green-400" />
+                <span className="text-xs font-bold text-green-400 uppercase tracking-wider">
+                  Resolved
+                </span>
+                <span className="text-xs text-gray-600">({resolvedIncidents.length})</span>
+              </div>
+
+              {loadingResolved && <p className="text-gray-500 text-sm">Loading…</p>}
+
+              {!loadingResolved && resolvedIncidents.length === 0 && (
+                <p className="text-gray-500 text-sm">No resolved incidents.</p>
+              )}
+
+              {!loadingResolved && resolvedIncidents.map(inc => (
+                <ResolvedIncidentCard key={inc.id} inc={inc} />
+              ))}
+            </section>
+          )}
+        </main>
+      </div>
     </div>
   )
 }
