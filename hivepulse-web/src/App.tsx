@@ -6,6 +6,7 @@ import { SetupPage } from './presentation/pages/SetupPage'
 import { DashboardPage } from './presentation/pages/DashboardPage'
 import { SettingsPage } from './presentation/pages/SettingsPage'
 import { AlertsPage } from './presentation/pages/AlertsPage'
+import { MonitorDetailPage } from './presentation/pages/MonitorDetailPage'
 import { PrivateRoute } from './presentation/components/PrivateRoute'
 
 function RootRedirect() {
@@ -31,6 +32,7 @@ export default function App() {
       <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
       <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
       <Route path="/alerts" element={<PrivateRoute><AlertsPage /></PrivateRoute>} />
+      <Route path="/monitors/:id" element={<PrivateRoute><MonitorDetailPage /></PrivateRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

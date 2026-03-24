@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
@@ -69,6 +70,7 @@ function Sparkline({ pings, color }: Readonly<{ pings: number[]; color: string }
 }
 
 export function MonitorCard({ monitor, currentUserRole, onEdit, onDelete }: Readonly<MonitorCardProps>) {
+  const navigate = useNavigate()
   const theme = useTheme()
   const sc = getStatusColors(monitor.last_status, theme.palette.mode === 'dark')
   const prevStatusRef = useRef(monitor.last_status)
@@ -97,6 +99,7 @@ export function MonitorCard({ monitor, currentUserRole, onEdit, onDelete }: Read
 
   return (
     <Box
+      onClick={() => navigate(`/monitors/${monitor.id}`)}
       sx={{
         borderRadius: 2,
         border: '1px solid',
@@ -105,6 +108,7 @@ export function MonitorCard({ monitor, currentUserRole, onEdit, onDelete }: Read
         bgcolor: 'background.paper',
         p: '12px 16px',
         mb: 1,
+        cursor: 'pointer',
         animation: shaking ? 'shake 0.4s ease-in-out' : undefined,
         transition: 'border-color 0.3s cubic-bezier(0.23,1,0.32,1), box-shadow 0.3s cubic-bezier(0.23,1,0.32,1), transform 0.3s cubic-bezier(0.23,1,0.32,1)',
         '&:hover': {

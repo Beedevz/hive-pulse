@@ -1,11 +1,20 @@
 // hivepulse-web/src/presentation/components/__tests__/MonitorCard.test.tsx
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { MonitorCard } from '../MonitorCard'
 import type { Monitor } from '../../../domain/monitor'
+
+const mockNavigate = vi.fn()
+vi.mock('react-router-dom', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router-dom')>()
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  }
+})
 
 const baseMonitor: Monitor = {
   id: 'monitor-1',
@@ -83,5 +92,15 @@ describe('MonitorCard', () => {
     )
     expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument()
+  })
+
+  it('navigates to monitor detail on card click', () => {
+    const monitorWithId: Monitor = { ...baseMonitor, id: 'test-id' }
+    render(
+      <MonitorCard monitor={monitorWithId} currentUserRole="admin" onEdit={vi.fn()} onDelete={vi.fn()} />,
+      { wrapper }
+    )
+    fireEvent.click(screen.getByText('Test API'))
+    expect(mockNavigate).toHaveBeenCalledWith('/monitors/test-id')
   })
 })
