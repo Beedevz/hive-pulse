@@ -53,12 +53,8 @@ type monitorResponse struct {
 	CreatedAt  string  `json:"created_at"`
 }
 
-func resolveStats(latest []*domain.Heartbeat, up, total int64) (string, float64) {
-	lastStatus := "unknown"
+func resolveStats(lastStatus string, up, total int64) (string, float64) {
 	uptime24h := 0.0
-	if len(latest) > 0 {
-		lastStatus = latest[0].Status
-	}
 	if total > 0 {
 		uptime24h = float64(up) / float64(total)
 	}
@@ -98,9 +94,8 @@ func (h *MonitorHandler) List(c *gin.Context) {
 	}
 	data := make([]monitorResponse, len(monitors))
 	for i, m := range monitors {
-		latest, _ := h.heartbeat.FindLatest(c.Request.Context(), m.ID, 1)
 		up, total24h, _ := h.heartbeat.GetUptime(c.Request.Context(), m.ID, time.Now().Add(-24*time.Hour))
-		lastStatus, uptime24h := resolveStats(latest, up, total24h)
+		lastStatus, uptime24h := resolveStats(m.LastStatus, up, total24h)
 		data[i] = toMonitorResponse(m, lastStatus, uptime24h)
 	}
 	c.JSON(http.StatusOK, gin.H{"data": data, "total": total, "page": page, "limit": limit})
@@ -121,7 +116,7 @@ func (h *MonitorHandler) Get(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 		return
 	}
-	c.JSON(http.StatusOK, toMonitorResponse(m, "unknown", 0.0))
+	c.JSON(http.StatusOK, toMonitorResponse(m, m.LastStatus, 0.0))
 }
 
 type monitorWriteRequest struct {
