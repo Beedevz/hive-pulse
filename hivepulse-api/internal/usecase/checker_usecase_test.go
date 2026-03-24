@@ -16,6 +16,7 @@ import (
 func TestRunCheck_Up_StoresAndBroadcasts(t *testing.T) {
 	monitorRepo := mocks.NewMonitorRepository(t)
 	heartbeatRepo := mocks.NewHeartbeatRepository(t)
+	incidentRepo := mocks.NewIncidentRepository(t)
 	checkerSvc := mocks.NewCheckerService(t)
 	broadcaster := mocks.NewWSBroadcaster(t)
 
@@ -25,9 +26,10 @@ func TestRunCheck_Up_StoresAndBroadcasts(t *testing.T) {
 	monitorRepo.On("FindByID", mock.Anything, "m1").Return(m, nil)
 	checkerSvc.On("Check", mock.Anything, m).Return(hb, nil)
 	heartbeatRepo.On("Create", mock.Anything, mock.AnythingOfType("*domain.Heartbeat")).Return(nil)
+	monitorRepo.On("UpdateLastStatus", mock.Anything, "m1", "up").Return(nil)
 	broadcaster.On("Broadcast", mock.AnythingOfType("[]uint8")).Return()
 
-	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo,
+	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo,
 		map[domain.CheckType]port.CheckerService{
 			domain.CheckHTTP: checkerSvc,
 		}, broadcaster)
@@ -42,12 +44,13 @@ func TestRunCheck_Up_StoresAndBroadcasts(t *testing.T) {
 func TestRunCheck_DisabledMonitor_Skips(t *testing.T) {
 	monitorRepo := mocks.NewMonitorRepository(t)
 	heartbeatRepo := mocks.NewHeartbeatRepository(t)
+	incidentRepo := mocks.NewIncidentRepository(t)
 	broadcaster := mocks.NewWSBroadcaster(t)
 
 	m := &domain.Monitor{ID: "m2", Enabled: false}
 	monitorRepo.On("FindByID", mock.Anything, "m2").Return(m, nil)
 
-	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, nil, broadcaster)
+	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo, nil, broadcaster)
 	uc.RunCheck(context.Background(), "m2")
 
 	heartbeatRepo.AssertNotCalled(t, "Create")
@@ -57,6 +60,7 @@ func TestRunCheck_DisabledMonitor_Skips(t *testing.T) {
 func TestRunCheck_AllRetriesFail_StoresDown(t *testing.T) {
 	monitorRepo := mocks.NewMonitorRepository(t)
 	heartbeatRepo := mocks.NewHeartbeatRepository(t)
+	incidentRepo := mocks.NewIncidentRepository(t)
 	checkerSvc := mocks.NewCheckerService(t)
 	broadcaster := mocks.NewWSBroadcaster(t)
 
@@ -67,9 +71,11 @@ func TestRunCheck_AllRetriesFail_StoresDown(t *testing.T) {
 	// called 3 times: 1 initial + 2 retries
 	checkerSvc.On("Check", mock.Anything, m).Return(downHB, nil).Times(3)
 	heartbeatRepo.On("Create", mock.Anything, mock.AnythingOfType("*domain.Heartbeat")).Return(nil)
+	monitorRepo.On("UpdateLastStatus", mock.Anything, "m3", "down").Return(nil)
+	incidentRepo.On("Create", mock.Anything, mock.AnythingOfType("*domain.Incident")).Return(nil)
 	broadcaster.On("Broadcast", mock.AnythingOfType("[]uint8")).Return()
 
-	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo,
+	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo,
 		map[domain.CheckType]port.CheckerService{
 			domain.CheckHTTP: checkerSvc,
 		}, broadcaster)
@@ -80,6 +86,116 @@ func TestRunCheck_AllRetriesFail_StoresDown(t *testing.T) {
 	heartbeatRepo.AssertCalled(t, "Create", mock.Anything, mock.MatchedBy(func(h *domain.Heartbeat) bool {
 		return h.Status == "down"
 	}))
+}
+
+func TestRunCheck_UpToDown_OpensIncident(t *testing.T) {
+	monitorRepo := mocks.NewMonitorRepository(t)
+	heartbeatRepo := mocks.NewHeartbeatRepository(t)
+	incidentRepo := mocks.NewIncidentRepository(t)
+	checkerSvc := mocks.NewCheckerService(t)
+	broadcaster := mocks.NewWSBroadcaster(t)
+
+	m := &domain.Monitor{
+		ID: "m1", CheckType: domain.CheckHTTP, Enabled: true,
+		Name: "API", LastStatus: "up",
+	}
+	downHB := &domain.Heartbeat{Status: "down", ErrorMsg: "refused", CheckedAt: time.Now()}
+
+	monitorRepo.On("FindByID", mock.Anything, "m1").Return(m, nil)
+	checkerSvc.On("Check", mock.Anything, m).Return(downHB, nil)
+	heartbeatRepo.On("Create", mock.Anything, mock.AnythingOfType("*domain.Heartbeat")).Return(nil)
+	monitorRepo.On("UpdateLastStatus", mock.Anything, "m1", "down").Return(nil)
+	incidentRepo.On("Create", mock.Anything, mock.MatchedBy(func(inc *domain.Incident) bool {
+		return inc.MonitorID == "m1" && inc.MonitorName == "API" && inc.ErrorMsg == "refused"
+	})).Return(nil)
+	broadcaster.On("Broadcast", mock.AnythingOfType("[]uint8")).Return()
+
+	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo,
+		map[domain.CheckType]port.CheckerService{domain.CheckHTTP: checkerSvc}, broadcaster)
+	uc.RunCheck(context.Background(), "m1")
+
+	incidentRepo.AssertExpectations(t)
+}
+
+func TestRunCheck_DownToUp_ResolvesIncident(t *testing.T) {
+	monitorRepo := mocks.NewMonitorRepository(t)
+	heartbeatRepo := mocks.NewHeartbeatRepository(t)
+	incidentRepo := mocks.NewIncidentRepository(t)
+	checkerSvc := mocks.NewCheckerService(t)
+	broadcaster := mocks.NewWSBroadcaster(t)
+
+	m := &domain.Monitor{
+		ID: "m2", CheckType: domain.CheckHTTP, Enabled: true,
+		Name: "DB", LastStatus: "down",
+	}
+	upHB := &domain.Heartbeat{Status: "up", PingMS: 50, CheckedAt: time.Now()}
+
+	monitorRepo.On("FindByID", mock.Anything, "m2").Return(m, nil)
+	checkerSvc.On("Check", mock.Anything, m).Return(upHB, nil)
+	heartbeatRepo.On("Create", mock.Anything, mock.AnythingOfType("*domain.Heartbeat")).Return(nil)
+	monitorRepo.On("UpdateLastStatus", mock.Anything, "m2", "up").Return(nil)
+	incidentRepo.On("Resolve", mock.Anything, "m2", mock.AnythingOfType("time.Time")).Return(nil)
+	broadcaster.On("Broadcast", mock.AnythingOfType("[]uint8")).Return()
+
+	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo,
+		map[domain.CheckType]port.CheckerService{domain.CheckHTTP: checkerSvc}, broadcaster)
+	uc.RunCheck(context.Background(), "m2")
+
+	incidentRepo.AssertExpectations(t)
+}
+
+func TestRunCheck_DownToDown_NoNewIncident(t *testing.T) {
+	monitorRepo := mocks.NewMonitorRepository(t)
+	heartbeatRepo := mocks.NewHeartbeatRepository(t)
+	incidentRepo := mocks.NewIncidentRepository(t)
+	checkerSvc := mocks.NewCheckerService(t)
+	broadcaster := mocks.NewWSBroadcaster(t)
+
+	m := &domain.Monitor{
+		ID: "m3", CheckType: domain.CheckHTTP, Enabled: true,
+		Name: "Cache", LastStatus: "down",
+	}
+	downHB := &domain.Heartbeat{Status: "down", ErrorMsg: "timeout", CheckedAt: time.Now()}
+
+	monitorRepo.On("FindByID", mock.Anything, "m3").Return(m, nil)
+	checkerSvc.On("Check", mock.Anything, m).Return(downHB, nil)
+	heartbeatRepo.On("Create", mock.Anything, mock.AnythingOfType("*domain.Heartbeat")).Return(nil)
+	monitorRepo.On("UpdateLastStatus", mock.Anything, "m3", "down").Return(nil)
+	broadcaster.On("Broadcast", mock.AnythingOfType("[]uint8")).Return()
+	// incidentRepo.Create must NOT be called
+
+	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo,
+		map[domain.CheckType]port.CheckerService{domain.CheckHTTP: checkerSvc}, broadcaster)
+	uc.RunCheck(context.Background(), "m3")
+
+	incidentRepo.AssertNotCalled(t, "Create")
+}
+
+func TestRunCheck_UnknownToDown_OpensIncident(t *testing.T) {
+	monitorRepo := mocks.NewMonitorRepository(t)
+	heartbeatRepo := mocks.NewHeartbeatRepository(t)
+	incidentRepo := mocks.NewIncidentRepository(t)
+	checkerSvc := mocks.NewCheckerService(t)
+	broadcaster := mocks.NewWSBroadcaster(t)
+
+	m := &domain.Monitor{
+		ID: "m4", CheckType: domain.CheckHTTP, Enabled: true,
+		Name: "New", LastStatus: "unknown",
+	}
+	downHB := &domain.Heartbeat{Status: "down", ErrorMsg: "unreachable", CheckedAt: time.Now()}
+
+	monitorRepo.On("FindByID", mock.Anything, "m4").Return(m, nil)
+	checkerSvc.On("Check", mock.Anything, m).Return(downHB, nil)
+	heartbeatRepo.On("Create", mock.Anything, mock.AnythingOfType("*domain.Heartbeat")).Return(nil)
+	monitorRepo.On("UpdateLastStatus", mock.Anything, "m4", "down").Return(nil)
+	incidentRepo.On("Create", mock.Anything, mock.AnythingOfType("*domain.Incident")).Return(nil)
+	broadcaster.On("Broadcast", mock.AnythingOfType("[]uint8")).Return()
+
+	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo,
+		map[domain.CheckType]port.CheckerService{domain.CheckHTTP: checkerSvc}, broadcaster)
+	uc.RunCheck(context.Background(), "m4")
+
+	incidentRepo.AssertCalled(t, "Create", mock.Anything, mock.AnythingOfType("*domain.Incident"))
 }
 
 // Ensure assert is used (avoids import error if no direct assertion is made).

@@ -1,8 +1,10 @@
+// hivepulse-api/internal/usecase/checker_usecase.go
 package usecase
 
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"time"
 
 	"github.com/beedevz/hivepulse/internal/domain"
@@ -20,6 +22,7 @@ type HeartbeatEvent struct {
 type CheckerUsecase struct {
 	monitors   port.MonitorRepository
 	heartbeats port.HeartbeatRepository
+	incidents  port.IncidentRepository
 	checkers   map[domain.CheckType]port.CheckerService
 	hub        port.WSBroadcaster
 }
@@ -27,10 +30,17 @@ type CheckerUsecase struct {
 func NewCheckerUsecase(
 	monitors port.MonitorRepository,
 	heartbeats port.HeartbeatRepository,
+	incidents port.IncidentRepository,
 	checkers map[domain.CheckType]port.CheckerService,
 	hub port.WSBroadcaster,
 ) *CheckerUsecase {
-	return &CheckerUsecase{monitors: monitors, heartbeats: heartbeats, checkers: checkers, hub: hub}
+	return &CheckerUsecase{
+		monitors:   monitors,
+		heartbeats: heartbeats,
+		incidents:  incidents,
+		checkers:   checkers,
+		hub:        hub,
+	}
 }
 
 // RunCheck implements port.CheckRunner.
@@ -47,7 +57,6 @@ func (u *CheckerUsecase) RunCheck(ctx context.Context, monitorID string) {
 
 	var heartbeat *domain.Heartbeat
 	for attempt := 0; attempt <= monitor.Retries; attempt++ {
-		// checker never returns (nil, err) — always returns a valid heartbeat
 		heartbeat, _ = checker.Check(ctx, monitor)
 		if heartbeat.Status == "up" {
 			break
@@ -60,6 +69,29 @@ func (u *CheckerUsecase) RunCheck(ctx context.Context, monitorID string) {
 	heartbeat.MonitorID = monitorID
 	if err := u.heartbeats.Create(ctx, heartbeat); err != nil {
 		return
+	}
+
+	prevStatus := monitor.LastStatus
+	newStatus := heartbeat.Status
+
+	if err := u.monitors.UpdateLastStatus(ctx, monitorID, newStatus); err != nil {
+		log.Printf("checker: UpdateLastStatus failed for %s: %v", monitorID, err)
+	}
+
+	switch {
+	case prevStatus != "down" && newStatus == "down":
+		if err := u.incidents.Create(ctx, &domain.Incident{
+			MonitorID:   monitorID,
+			MonitorName: monitor.Name,
+			StartedAt:   heartbeat.CheckedAt,
+			ErrorMsg:    heartbeat.ErrorMsg,
+		}); err != nil {
+			log.Printf("checker: incidents.Create failed for %s: %v", monitorID, err)
+		}
+	case prevStatus == "down" && newStatus == "up":
+		if err := u.incidents.Resolve(ctx, monitorID, heartbeat.CheckedAt); err != nil {
+			log.Printf("checker: incidents.Resolve failed for %s: %v", monitorID, err)
+		}
 	}
 
 	event, _ := json.Marshal(HeartbeatEvent{
