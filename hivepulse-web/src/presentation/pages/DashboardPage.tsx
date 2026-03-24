@@ -71,7 +71,7 @@ export function DashboardPage() {
           )}
         </div>
 
-        <div className="mb-4">
+        <div className="mb-4 max-w-3xl">
           <MonitorSearch onSearch={setSearchTerm} />
         </div>
 
@@ -80,7 +80,7 @@ export function DashboardPage() {
         ) : filtered.length === 0 ? (
           <div className="text-gray-500 text-sm">{emptyMessage}</div>
         ) : (
-          <div>
+          <div className="max-w-3xl">
             {filtered.map(m => (
               <MonitorCard
                 key={m.id}

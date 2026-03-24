@@ -76,8 +76,11 @@ export function MonitorCard({ monitor, currentUserRole, onEdit, onDelete }: Moni
       style={{
         borderLeft: `3px solid ${colors.border}`,
         borderRadius: '8px',
-        background: 'var(--color-surface, #1a1c2e)',
-        padding: '12px 14px',
+        background: '#0f1117',
+        border: '1px solid #1f2937',
+        borderLeftColor: colors.border,
+        borderLeftWidth: '3px',
+        padding: '10px 12px',
         marginBottom: '8px',
         animation: shaking ? 'shake 0.4s ease-in-out' : undefined,
       }}
@@ -96,32 +99,32 @@ export function MonitorCard({ monitor, currentUserRole, onEdit, onDelete }: Moni
         }
       `}</style>
 
-      {/* Top row */}
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex items-center gap-2">
+      {/* Top row: dot + name/url on left, check info + badge on right */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2 min-w-0">
           <div
             style={{
-              width: 10, height: 10, borderRadius: '50%',
+              width: 8, height: 8, borderRadius: '50%',
               background: colors.dot,
               boxShadow: `0 0 6px ${colors.glow}`,
               animation: 'pulse-glow 2s ease-in-out infinite',
               flexShrink: 0,
             }}
           />
-          <div>
-            <div className="font-semibold text-sm text-gray-100">{monitor.name}</div>
-            {subLabel && <div className="text-xs text-gray-400">{subLabel}</div>}
+          <div className="min-w-0">
+            <div className="font-semibold text-sm text-gray-100 truncate">{monitor.name}</div>
+            {subLabel && <div className="text-xs text-gray-500 truncate">{subLabel}</div>}
           </div>
         </div>
-        <div className="flex items-center gap-3 text-right">
-          <div className="text-xs text-gray-400">
+        <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+          <span className="text-xs text-gray-500">
             {monitor.check_type.toUpperCase()} · {monitor.interval}s
-            {avgPing !== null && <> · avg {avgPing}ms</>}
-          </div>
+            {avgPing !== null && <> · {avgPing}ms</>}
+          </span>
           <span
             className="text-xs font-bold px-2 py-0.5 rounded"
             style={{
-              background: `${colors.border}22`,
+              background: `${colors.border}20`,
               color: colors.border,
             }}
           >
@@ -130,18 +133,18 @@ export function MonitorCard({ monitor, currentUserRole, onEdit, onDelete }: Moni
         </div>
       </div>
 
-      {/* UptimeBar */}
+      {/* UptimeBar + uptime % */}
       <div className="flex items-center gap-2 mb-1">
         <div className="flex-1">
           <UptimeBar blocks={blocks} />
         </div>
-        <span className="text-xs font-semibold" style={{ color: colors.border }}>
+        <span className="text-xs font-semibold flex-shrink-0" style={{ color: colors.border }}>
           {(monitor.uptime_24h * 100).toFixed(1)}%
         </span>
       </div>
 
       {/* Sparkline */}
-      <div style={{ color: colors.border, marginBottom: '6px' }}>
+      <div style={{ color: colors.border, opacity: 0.8, marginBottom: '6px' }}>
         <Sparkline pings={sparklinePings} />
       </div>
 
@@ -150,13 +153,13 @@ export function MonitorCard({ monitor, currentUserRole, onEdit, onDelete }: Moni
         <div className="flex justify-end gap-2">
           <button
             onClick={() => onEdit(monitor)}
-            className="text-xs bg-gray-700 text-gray-300 px-3 py-1 rounded hover:bg-gray-600"
+            className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded hover:bg-gray-700"
           >
             Edit
           </button>
           <button
             onClick={() => { if (window.confirm('Delete monitor?')) onDelete(monitor.id) }}
-            className="text-xs bg-red-900/40 text-red-400 px-3 py-1 rounded hover:bg-red-900/70"
+            className="text-xs bg-red-900/30 text-red-400 px-2 py-0.5 rounded hover:bg-red-900/60"
           >
             Delete
           </button>
