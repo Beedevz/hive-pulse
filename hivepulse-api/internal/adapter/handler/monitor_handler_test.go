@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,6 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 type mockMonitorService struct{ mock.Mock }
@@ -49,10 +51,24 @@ func (m *mockHeartbeatService) GetUptime(ctx context.Context, monitorID string, 
 	return 0, 0, nil
 }
 
+type mockStatsService struct{ mock.Mock }
+
+func (m *mockStatsService) GetStats(ctx context.Context, monitorID, rangeParam string) (*domain.StatsResponse, error) {
+	args := m.Called(ctx, monitorID, rangeParam)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.StatsResponse), args.Error(1)
+}
+
 func setupMonitorRouter(svc handler.MonitorService) *gin.Engine {
+	return setupMonitorRouterWithStats(svc, nil)
+}
+
+func setupMonitorRouterWithStats(svc handler.MonitorService, statsSvc handler.StatsService) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	h := handler.NewMonitorHandler(svc, &mockHeartbeatService{})
+	h := handler.NewMonitorHandler(svc, &mockHeartbeatService{}, statsSvc)
 	r.Use(func(c *gin.Context) {
 		c.Set("userID", "test-user-id")
 		c.Set("role", string(domain.RoleAdmin))
@@ -65,6 +81,7 @@ func setupMonitorRouter(svc handler.MonitorService) *gin.Engine {
 	v1.PUT("/monitors/:id", h.Update)
 	v1.DELETE("/monitors/:id", h.Delete)
 	v1.GET("/monitors/:id/heartbeats", h.Heartbeats)
+	v1.GET("/monitors/:id/stats", h.Stats)
 	return r
 }
 
@@ -136,4 +153,32 @@ func TestMonitorDelete_Returns204(t *testing.T) {
 	req, _ := http.NewRequest("DELETE", "/api/v1/monitors/m1", nil)
 	setupMonitorRouter(svc).ServeHTTP(w, req)
 	assert.Equal(t, http.StatusNoContent, w.Code)
+}
+
+func TestMonitorStats_Returns200(t *testing.T) {
+	svc := &mockMonitorService{}
+	statsSvc := &mockStatsService{}
+	statsResp := &domain.StatsResponse{UptimePct: 99.5, AvgPingMS: 120, Buckets: []*domain.StatsBucket{}}
+	statsSvc.On("GetStats", mock.Anything, "m1", "24h").Return(statsResp, nil)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/v1/monitors/m1/stats?range=24h", nil)
+	setupMonitorRouterWithStats(svc, statsSvc).ServeHTTP(w, req)
+	require.Equal(t, http.StatusOK, w.Code)
+
+	var resp domain.StatsResponse
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	require.NoError(t, err)
+	assert.InDelta(t, 99.5, resp.UptimePct, 0.001)
+}
+
+func TestMonitorStats_InvalidRange_Returns400(t *testing.T) {
+	svc := &mockMonitorService{}
+	statsSvc := &mockStatsService{}
+	statsSvc.On("GetStats", mock.Anything, "m1", "bad").Return(nil, fmt.Errorf("invalid range"))
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/v1/monitors/m1/stats?range=bad", nil)
+	setupMonitorRouterWithStats(svc, statsSvc).ServeHTTP(w, req)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
 }

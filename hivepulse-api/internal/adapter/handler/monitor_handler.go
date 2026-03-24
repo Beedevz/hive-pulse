@@ -27,13 +27,19 @@ type HeartbeatService interface {
 	GetUptime(ctx context.Context, monitorID string, since time.Time) (int64, int64, error)
 }
 
+// StatsService abstracts stats queries for testability.
+type StatsService interface {
+	GetStats(ctx context.Context, monitorID, rangeParam string) (*domain.StatsResponse, error)
+}
+
 type MonitorHandler struct {
 	svc       MonitorService
 	heartbeat HeartbeatService
+	stats     StatsService
 }
 
-func NewMonitorHandler(svc MonitorService, heartbeat HeartbeatService) *MonitorHandler {
-	return &MonitorHandler{svc: svc, heartbeat: heartbeat}
+func NewMonitorHandler(svc MonitorService, heartbeat HeartbeatService, stats StatsService) *MonitorHandler {
+	return &MonitorHandler{svc: svc, heartbeat: heartbeat, stats: stats}
 }
 
 type monitorResponse struct {
@@ -263,4 +269,30 @@ func (h *MonitorHandler) Heartbeats(c *gin.Context) {
 		resp[i] = hbResp{Status: hb.Status, PingMS: hb.PingMS, CheckedAt: hb.CheckedAt.Format(time.RFC3339)}
 	}
 	c.JSON(http.StatusOK, gin.H{"data": resp})
+}
+
+// Stats godoc
+// @Summary      Get aggregated stats for a monitor
+// @Tags         monitors
+// @Security     Bearer
+// @Param        id    path  string true  "Monitor ID"
+// @Param        range query string true  "Time range: 24h, 7d, or 90d"
+// @Produce      json
+// @Success      200 {object} domain.StatsResponse
+// @Failure      400 {object} map[string]string
+// @Failure      404 {object} map[string]string
+// @Router       /monitors/{id}/stats [get]
+func (h *MonitorHandler) Stats(c *gin.Context) {
+	id := c.Param("id")
+	rangeParam := c.Query("range")
+	resp, err := h.stats.GetStats(c.Request.Context(), id, rangeParam)
+	if err != nil {
+		if errors.Is(err, domain.ErrNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+			return
+		}
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, resp)
 }
