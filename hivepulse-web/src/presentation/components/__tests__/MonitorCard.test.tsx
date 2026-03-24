@@ -1,12 +1,11 @@
 // hivepulse-web/src/presentation/components/__tests__/MonitorCard.test.tsx
 import React from 'react'
-import { render, screen, act } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { MonitorCard } from '../MonitorCard'
 import type { Monitor } from '../../../domain/monitor'
-import { server } from '../../../test/msw-server'
 
 const baseMonitor: Monitor = {
   id: 'monitor-1',
