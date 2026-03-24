@@ -76,6 +76,7 @@ export function MonitorCard({ monitor, currentUserRole, onEdit, onDelete }: Read
 
   useEffect(() => {
     if (prevStatusRef.current !== 'down' && monitor.last_status === 'down') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShaking(true)
       const t = setTimeout(() => setShaking(false), 400)
       return () => clearTimeout(t)

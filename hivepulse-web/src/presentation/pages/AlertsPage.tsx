@@ -24,7 +24,7 @@ function formatDuration(seconds: number): string {
 
 function LiveDuration({ startedAt }: Readonly<{ startedAt: string }>) {
   const [secs, setSecs] = useState(
-    Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000)
+    () => Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000)
   )
   useEffect(() => {
     const t = setInterval(() => {

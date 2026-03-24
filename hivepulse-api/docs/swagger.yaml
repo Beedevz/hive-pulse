@@ -214,6 +214,32 @@ paths:
       summary: Check setup status
       tags:
       - auth
+  /incidents:
+    get:
+      parameters:
+      - default: all
+        description: 'Filter: active|resolved|all'
+        in: query
+        name: status
+        type: string
+      - default: 100
+        description: Max results
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: List incidents
+      tags:
+      - incidents
   /monitors:
     get:
       parameters:

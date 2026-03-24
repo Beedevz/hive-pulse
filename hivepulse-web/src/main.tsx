@@ -10,6 +10,7 @@ import App from './App'
 
 const queryClient = new QueryClient()
 
+// eslint-disable-next-line react-refresh/only-export-components
 function ThemedApp() {
   const { mode } = useThemeMode()
   return (
