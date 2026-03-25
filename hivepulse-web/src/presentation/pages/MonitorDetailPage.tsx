@@ -1,14 +1,19 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
 import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
 import { useMonitor } from '../../application/useMonitors'
 import { useStats } from '../../application/useStats'
+import { useMe } from '../../application/useAuth'
+import { useMonitorChannels, useChannels, useAssignChannel, useUnassignChannel } from '../../application/useNotifications'
 import { UptimeHeatmap } from '../components/UptimeHeatmap'
 import { ResponseTimeChart } from '../components/ResponseTimeChart'
 import { Sidebar } from '../components/Sidebar'
@@ -25,9 +30,61 @@ const statusChipColor = (status: string) => {
   }
 }
 
+function MonitorChannelsSection({ monitorId }: Readonly<{ monitorId: string }>) {
+  const { data: assigned = [] } = useMonitorChannels(monitorId)
+  const { data: allChannels = [] } = useChannels()
+  const assign = useAssignChannel()
+  const unassign = useUnassignChannel()
+  const [selectedChannelId, setSelectedChannelId] = useState('')
+
+  const handleAdd = () => {
+    if (!selectedChannelId) return
+    assign.mutate({ monitorId, channelId: selectedChannelId })
+    setSelectedChannelId('')
+  }
+
+  return (
+    <Box sx={{ mt: 3 }}>
+      <Typography variant="h6" gutterBottom>Notification Channels</Typography>
+      {assigned.length === 0 ? (
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          Using global channels
+        </Typography>
+      ) : (
+        assigned.map((ch) => (
+          <Box key={ch.id} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+            <Typography>{ch.name} ({ch.type})</Typography>
+            <Button size="small" color="error" onClick={() => unassign.mutate({ monitorId, channelId: ch.id })}>
+              Remove
+            </Button>
+          </Box>
+        ))
+      )}
+      <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+        <Select
+          size="small"
+          value={selectedChannelId}
+          onChange={(e) => setSelectedChannelId(e.target.value)}
+          displayEmpty
+          sx={{ minWidth: 200 }}
+        >
+          <MenuItem value="">Add Override Channel</MenuItem>
+          {allChannels.map((ch) => (
+            <MenuItem key={ch.id} value={ch.id}>{ch.name}</MenuItem>
+          ))}
+        </Select>
+        <Button onClick={handleAdd} disabled={!selectedChannelId} variant="outlined" size="small">
+          Add
+        </Button>
+      </Box>
+    </Box>
+  )
+}
+
 export function MonitorDetailPage() {
   const { id = '' } = useParams<{ id: string }>()
   const [chartRange, setChartRange] = useState<'24h' | '7d'>('24h')
+  const { data: me } = useMe()
 
   const { data: monitor, isLoading: monitorLoading, isError: monitorError } = useMonitor(id)
   const { data: heatmapStats, isLoading: heatmapLoading, isError: heatmapError } = useStats(id, '90d')
@@ -102,6 +159,10 @@ export function MonitorDetailPage() {
             {chartError && <Alert severity="error">Failed to load response time data.</Alert>}
             {chartStats && <ResponseTimeChart buckets={chartStats.buckets} range={chartRange} />}
           </Box>
+
+          {me?.role === 'admin' && id && (
+            <MonitorChannelsSection monitorId={id} />
+          )}
         </Box>
       </Box>
     </Box>
