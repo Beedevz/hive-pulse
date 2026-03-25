@@ -6,34 +6,25 @@ import (
 	"log"
 	"net/smtp"
 
+	"github.com/beedevz/hivepulse/infrastructure"
 	"github.com/beedevz/hivepulse/internal/domain"
 )
 
-// SMTPConfig holds SMTP connection settings.
-// These will be wired from infrastructure.Config once SMTP fields are added (Task 10).
-type SMTPConfig struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-	From     string
-}
+type EmailSender struct{ cfg *infrastructure.Config }
 
-type EmailSender struct{ cfg SMTPConfig }
-
-func NewEmailSender(cfg SMTPConfig) *EmailSender { return &EmailSender{cfg: cfg} }
+func NewEmailSender(cfg *infrastructure.Config) *EmailSender { return &EmailSender{cfg: cfg} }
 
 func (s *EmailSender) Send(_ context.Context, ch *domain.NotificationChannel, event domain.NotificationEvent, monitor *domain.Monitor) error {
-	if s.cfg.Host == "" {
+	if s.cfg.SMTPHost == "" {
 		log.Printf("email_sender: SMTP not configured, skipping notification for monitor %s", monitor.ID)
 		return nil
 	}
 	to := ch.Config["to"]
 	subject, body := formatEmail(event, monitor)
 	msg := fmt.Sprintf("To: %s\r\nSubject: %s\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n%s", to, subject, body)
-	addr := fmt.Sprintf("%s:%d", s.cfg.Host, s.cfg.Port)
-	auth := smtp.PlainAuth("", s.cfg.User, s.cfg.Password, s.cfg.Host)
-	return smtp.SendMail(addr, auth, s.cfg.From, []string{to}, []byte(msg))
+	addr := fmt.Sprintf("%s:%d", s.cfg.SMTPHost, s.cfg.SMTPPort)
+	auth := smtp.PlainAuth("", s.cfg.SMTPUser, s.cfg.SMTPPassword, s.cfg.SMTPHost)
+	return smtp.SendMail(addr, auth, s.cfg.SMTPFrom, []string{to}, []byte(msg))
 }
 
 func formatEmail(event domain.NotificationEvent, monitor *domain.Monitor) (subject, body string) {

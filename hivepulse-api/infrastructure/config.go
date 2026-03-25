@@ -3,6 +3,7 @@ package infrastructure
 import (
 	"log"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -17,6 +18,12 @@ type Config struct {
 	JWTRefreshExpiry time.Duration
 
 	CORSAllowedOrigins string
+
+	SMTPHost     string
+	SMTPPort     int
+	SMTPUser     string
+	SMTPPassword string
+	SMTPFrom     string
 }
 
 func LoadConfig() *Config {
@@ -38,6 +45,18 @@ func LoadConfig() *Config {
 		JWTAccessExpiry:    accessExpiry,
 		JWTRefreshExpiry:   refreshExpiry,
 		CORSAllowedOrigins: getEnv("CORS_ALLOWED_ORIGINS", "http://localhost:5173"),
+		SMTPHost:           getEnv("SMTP_HOST", ""),
+		SMTPPort: func() int {
+			p := getEnv("SMTP_PORT", "587")
+			port, _ := strconv.Atoi(p)
+			if port == 0 {
+				port = 587
+			}
+			return port
+		}(),
+		SMTPUser:     getEnv("SMTP_USER", ""),
+		SMTPPassword: getEnv("SMTP_PASSWORD", ""),
+		SMTPFrom:     getEnv("SMTP_FROM", ""),
 	}
 }
 
