@@ -5,12 +5,18 @@ import (
 	"log"
 	"time"
 
+	"github.com/beedevz/hivepulse/internal/port"
 	"gorm.io/gorm"
 )
 
-type Aggregator struct{ db *gorm.DB }
+type Aggregator struct {
+	db       *gorm.DB
+	reminder port.ReminderNotifier
+}
 
 func NewAggregator(db *gorm.DB) *Aggregator { return &Aggregator{db: db} }
+
+func (a *Aggregator) SetReminder(r port.ReminderNotifier) { a.reminder = r }
 
 func (a *Aggregator) Start(ctx context.Context) {
 	ticker := time.NewTicker(5 * time.Minute)
@@ -28,7 +34,7 @@ func (a *Aggregator) Start(ctx context.Context) {
 }
 
 func (a *Aggregator) Tick(ctx context.Context) error {
-	return a.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	if err := a.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// 1. UPSERT hourly buckets (last 2 hours)
 		if err := tx.Exec(`
 			INSERT INTO stats_hourly (monitor_id, hour, up_count, total_count, avg_ping_ms)
@@ -85,5 +91,13 @@ func (a *Aggregator) Tick(ctx context.Context) error {
 		}
 
 		return nil
-	})
+	}); err != nil {
+		return err
+	}
+	if a.reminder != nil {
+		if err := a.reminder.NotifyReminders(ctx); err != nil {
+			log.Printf("aggregator: reminder error: %v", err)
+		}
+	}
+	return nil
 }
