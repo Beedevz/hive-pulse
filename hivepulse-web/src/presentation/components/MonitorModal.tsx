@@ -32,8 +32,10 @@ export const MonitorModal = ({ open, onClose, onSubmit, initialValues }: Readonl
   const [host, setHost] = useState(initialValues?.host ?? '')
   const [port, setPort] = useState(initialValues?.port ?? 80)
   const [pingHost, setPingHost] = useState(initialValues?.ping_host ?? '')
+  const [packetCount, setPacketCount] = useState(initialValues?.packet_count ?? 3)
   const [dnsHost, setDnsHost] = useState(initialValues?.dns_host ?? '')
   const [recordType, setRecordType] = useState(initialValues?.record_type ?? 'A')
+  const [dnsServer, setDnsServer] = useState(initialValues?.dns_server ?? '')
 
   if (!open) return null
 
@@ -46,9 +48,9 @@ export const MonitorModal = ({ open, onClose, onSubmit, initialValues }: Readonl
     } else if (checkType === 'tcp') {
       payload = { ...base, host, port }
     } else if (checkType === 'ping') {
-      payload = { ...base, ping_host: pingHost }
+      payload = { ...base, ping_host: pingHost, packet_count: packetCount }
     } else {
-      payload = { ...base, dns_host: dnsHost, record_type: recordType }
+      payload = { ...base, dns_host: dnsHost, record_type: recordType, ...(dnsServer ? { dns_server: dnsServer } : {}) }
     }
     onSubmit(payload)
   }
@@ -124,21 +126,39 @@ export const MonitorModal = ({ open, onClose, onSubmit, initialValues }: Readonl
           )}
 
           {checkType === 'ping' && (
-            <TextField id="ping_host" label="Ping Host" value={pingHost} onChange={(e) => setPingHost(e.target.value)}
-              fullWidth size="small" placeholder="8.8.8.8" sx={fieldSx} />
+            <Grid container spacing={2} sx={{ mb: 2 }}>
+              <Grid size={8}>
+                <TextField id="ping_host" label="Ping Host" value={pingHost} onChange={(e) => setPingHost(e.target.value)}
+                  fullWidth size="small" placeholder="8.8.8.8" />
+              </Grid>
+              <Grid size={4}>
+                <TextField id="packet_count" label="Packets" type="number" value={packetCount}
+                  onChange={(e) => setPacketCount(Number(e.target.value))}
+                  fullWidth size="small" slotProps={{ htmlInput: { min: 1, max: 20 } }} />
+              </Grid>
+            </Grid>
           )}
 
           {checkType === 'dns' && (
             <>
-              <TextField id="dns_host" label="DNS Host" value={dnsHost} onChange={(e) => setDnsHost(e.target.value)}
-                fullWidth size="small" placeholder="example.com" sx={fieldSx} />
-              <TextField id="record_type" label="Record Type" value={recordType} onChange={(e) => setRecordType(e.target.value)}
-                fullWidth size="small" select slotProps={{ select: { native: true } }} sx={fieldSx}>
-                <option value="A">A</option>
-                <option value="AAAA">AAAA</option>
-                <option value="CNAME">CNAME</option>
-                <option value="MX">MX</option>
-              </TextField>
+              <Grid container spacing={2} sx={{ mb: 2 }}>
+                <Grid size={8}>
+                  <TextField id="dns_host" label="DNS Host" value={dnsHost} onChange={(e) => setDnsHost(e.target.value)}
+                    fullWidth size="small" placeholder="example.com" />
+                </Grid>
+                <Grid size={4}>
+                  <TextField id="record_type" label="Record Type" value={recordType} onChange={(e) => setRecordType(e.target.value)}
+                    fullWidth size="small" select slotProps={{ select: { native: true } }}>
+                    <option value="A">A</option>
+                    <option value="AAAA">AAAA</option>
+                    <option value="CNAME">CNAME</option>
+                    <option value="MX">MX</option>
+                    <option value="TXT">TXT</option>
+                  </TextField>
+                </Grid>
+              </Grid>
+              <TextField id="dns_server" label="Custom DNS Server" value={dnsServer} onChange={(e) => setDnsServer(e.target.value)}
+                fullWidth size="small" placeholder="8.8.8.8 (leave empty for system default)" sx={fieldSx} />
             </>
           )}
 

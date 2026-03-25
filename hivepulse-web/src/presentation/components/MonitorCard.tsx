@@ -95,7 +95,11 @@ export function MonitorCard({ monitor, currentUserRole, onEdit, onDelete }: Read
   const avgPing = heartbeats.length > 0
     ? Math.round(heartbeats.reduce((s, h) => s + h.ping_ms, 0) / heartbeats.length)
     : null
-  const subLabel = monitor.url ?? monitor.host ?? monitor.ping_host ?? monitor.dns_host ?? ''
+  const subLabel = (() => {
+    if (monitor.check_type === 'tcp' && monitor.host) return `${monitor.host}:${monitor.port ?? ''}`
+    if (monitor.check_type === 'dns' && monitor.dns_host) return `${monitor.dns_host} (${monitor.record_type ?? 'A'})`
+    return monitor.url ?? monitor.ping_host ?? monitor.dns_host ?? ''
+  })()
 
   return (
     <Box
