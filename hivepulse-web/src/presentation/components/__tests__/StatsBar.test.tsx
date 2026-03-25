@@ -58,7 +58,7 @@ describe('StatsBar', () => {
       isPending: false,
       isError: false,
       error: null,
-    } as any)
+    } as unknown as ReturnType<typeof useMonitors>)
     vi.mocked(useIncidents).mockReturnValue({
       data: {
         data: [
@@ -77,7 +77,7 @@ describe('StatsBar', () => {
       isPending: false,
       isError: false,
       error: null,
-    } as any)
+    } as unknown as ReturnType<typeof useIncidents>)
   })
 
   it('renders all 4 metric labels', () => {
@@ -110,7 +110,7 @@ describe('StatsBar', () => {
       isPending: false,
       isError: false,
       error: null,
-    } as any)
+    } as unknown as ReturnType<typeof useMonitors>)
     render(<StatsBar />, { wrapper })
     expect(screen.getByTestId('avg-uptime-value')).toHaveTextContent('—')
   })

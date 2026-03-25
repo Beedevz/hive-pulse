@@ -47,7 +47,7 @@ describe('MonitorDetailSection', () => {
   })
 
   it('hides Edit/Delete buttons for viewer role', async () => {
-    vi.mocked(useMe).mockReturnValue({ data: { email: 'viewer@example.com', role: 'viewer' } } as any)
+    vi.mocked(useMe).mockReturnValue({ data: { email: 'viewer@example.com', role: 'viewer' } } as unknown as ReturnType<typeof useMe>)
     render(<MonitorDetailSection monitorId="monitor-1" />, { wrapper })
     await waitFor(() => screen.getByText('Test API'))
     expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument()
