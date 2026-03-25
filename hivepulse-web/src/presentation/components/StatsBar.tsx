@@ -72,6 +72,7 @@ export function StatsBar() {
         label="Avg Uptime"
         value={avgUptime}
         valueColor={colors.up}
+        valueTestId="avg-uptime-value"
       />
       <MetricCell
         label="Monitors Down"
@@ -84,6 +85,7 @@ export function StatsBar() {
         valueColor={incidentCount > 0 ? colors.down : 'text.secondary'}
         onClick={() => navigate('/alerts')}
         testId="incidents-cell"
+        valueTestId="incidents-value"
       />
       <MetricCell
         label="Total Monitors"
