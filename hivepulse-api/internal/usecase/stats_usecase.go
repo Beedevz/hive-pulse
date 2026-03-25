@@ -27,10 +27,12 @@ func (u *StatsUsecase) GetStats(ctx context.Context, monitorID, rangeParam strin
 		buckets, err = u.repo.GetHourly(ctx, monitorID, now.Add(-24*time.Hour))
 	case "7d":
 		buckets, err = u.repo.GetHourly(ctx, monitorID, now.Add(-7*24*time.Hour))
+	case "30d":
+		buckets, err = u.repo.GetDaily(ctx, monitorID, now.AddDate(0, 0, -30))
 	case "90d":
 		buckets, err = u.repo.GetDaily(ctx, monitorID, now.AddDate(0, 0, -90))
 	default:
-		return nil, fmt.Errorf("invalid range %q: must be 24h, 7d, or 90d", rangeParam)
+		return nil, fmt.Errorf("invalid range %q: must be 24h, 7d, 30d, or 90d", rangeParam)
 	}
 	if err != nil {
 		return nil, err

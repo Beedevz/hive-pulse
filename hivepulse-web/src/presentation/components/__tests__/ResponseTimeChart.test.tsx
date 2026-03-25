@@ -14,6 +14,7 @@ vi.mock('recharts', () => ({
   XAxis: () => <div data-testid="x-axis" />,
   YAxis: () => <div data-testid="y-axis" />,
   Tooltip: () => <div data-testid="tooltip" />,
+  CartesianGrid: () => <div data-testid="cartesian-grid" />,
 }))
 
 describe('ResponseTimeChart', () => {

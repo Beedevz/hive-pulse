@@ -42,9 +42,9 @@ export function TopNav() {
     >
       {/* Logo */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <HivePulseLogo size={22} />
+        <HivePulseLogo size={28} />
         <Typography
-          fontSize="0.8125rem"
+          fontSize="0.9375rem"
           fontWeight={700}
           fontFamily="'Bricolage Grotesque', sans-serif"
           color="text.primary"

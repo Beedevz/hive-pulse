@@ -43,7 +43,7 @@ export function LeftPanel({ selectedMonitorId, onAddClick }: Readonly<LeftPanelP
   return (
     <Box
       sx={{
-        width: 300,
+        width: 380,
         flexShrink: 0,
         borderRight: '1px solid',
         borderColor: 'divider',
@@ -83,10 +83,10 @@ export function LeftPanel({ selectedMonitorId, onAddClick }: Readonly<LeftPanelP
           size="small"
           onClick={onAddClick}
           sx={{
-            fontSize: '0.5rem',
+            fontSize: '0.75rem',
             fontWeight: 700,
-            px: 0.875,
-            py: 0.25,
+            px: 1.25,
+            py: 0.375,
             minWidth: 0,
             bgcolor: colors.accentDark,
             color: '#202232',

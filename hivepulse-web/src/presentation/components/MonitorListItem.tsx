@@ -60,8 +60,8 @@ export const MonitorListItem = forwardRef<HTMLDivElement, MonitorListItemProps>(
             : isSelected
             ? `${statusColor}10`
             : 'background.paper',
-          px: 1.25,
-          py: 1,
+          px: 1.5,
+          py: 1.25,
           cursor: 'pointer',
           '&:hover': { borderColor: `${statusColor}60` },
         }}
