@@ -77,7 +77,7 @@ func (s *SSLChecker) certDaysRemaining(rawURL string) (int, error) {
 	if port == "" {
 		port = "443"
 	}
-	conn, err := tls.Dial("tcp", net.JoinHostPort(host, port), &tls.Config{ServerName: host})
+	conn, err := tls.Dial("tcp", net.JoinHostPort(host, port), &tls.Config{ServerName: host, MinVersion: tls.VersionTLS12})
 	if err != nil {
 		return 0, err
 	}
