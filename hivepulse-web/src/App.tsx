@@ -3,10 +3,10 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useSetupStatus, useInitAuth } from './application/useAuth'
 import { LoginPage } from './presentation/pages/LoginPage'
 import { SetupPage } from './presentation/pages/SetupPage'
-import { DashboardPage } from './presentation/pages/DashboardPage'
-import { SettingsPage } from './presentation/pages/SettingsPage'
+import { MonitorsPage } from './presentation/pages/MonitorsPage'
 import { AlertsPage } from './presentation/pages/AlertsPage'
-import { MonitorDetailPage } from './presentation/pages/MonitorDetailPage'
+import { SettingsPage } from './presentation/pages/SettingsPage'
+import { AppLayout } from './presentation/components/AppLayout'
 import { PrivateRoute } from './presentation/components/PrivateRoute'
 
 function RootRedirect() {
@@ -29,10 +29,12 @@ export default function App() {
       <Route path="/" element={<RootRedirect />} />
       <Route path="/setup" element={<SetupPage />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
-      <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
-      <Route path="/alerts" element={<PrivateRoute><AlertsPage /></PrivateRoute>} />
-      <Route path="/monitors/:id" element={<PrivateRoute><MonitorDetailPage /></PrivateRoute>} />
+      <Route element={<PrivateRoute><AppLayout /></PrivateRoute>}>
+        <Route path="/dashboard" element={<MonitorsPage />} />
+        <Route path="/monitors/:id" element={<MonitorsPage />} />
+        <Route path="/alerts" element={<AlertsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+      </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
