@@ -107,10 +107,19 @@ func main() {
 	wsHandler := handler.NewWSHandler(hub)
 	incidentHandler := handler.NewIncidentHandler(incidentRepo)
 
+	tagRepo := repo.NewTagRepo(db)
+	tagUC := usecase.NewTagUsecase(tagRepo)
+	tagHandler := handler.NewTagHandler(tagUC, monitorUC)
+
+	statusPageRepo := repo.NewStatusPageRepo(db)
+	statusPageUC := usecase.NewStatusPageUsecase(statusPageRepo, monitorRepo, statsUC, heartbeatRepo, incidentRepo)
+	statusPageHandler := handler.NewStatusPageHandler(statusPageUC)
+
 	r := gin.Default()
 	r.Use(middleware.CORS(cfg.CORSAllowedOrigins))
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+	r.GET("/s/:slug", statusPageHandler.GetPublic)
 
 	v1 := r.Group("/api/v1")
 	{
@@ -167,6 +176,26 @@ func main() {
 		users.DELETE("/:id", userHandler.DeleteUser)
 
 		v1.GET("/ws", jwtAuth, wsHandler.Connect)
+
+		tags := v1.Group("/tags")
+		tags.Use(jwtAuth)
+		tags.GET("", tagHandler.List)
+		tags.POST("", adminGuard, tagHandler.Create)
+		tags.DELETE("/:id", adminGuard, tagHandler.Delete)
+
+		monitorTags := v1.Group("/monitors")
+		monitorTags.Use(jwtAuth)
+		monitorTags.GET("/:id/tags", tagHandler.GetMonitorTags)
+		monitorTags.POST("/:id/tags/:tagId", editorGuard, tagHandler.AssignTag)
+		monitorTags.DELETE("/:id/tags/:tagId", editorGuard, tagHandler.UnassignTag)
+
+		statusPages := v1.Group("/status-pages")
+		statusPages.Use(jwtAuth)
+		statusPages.GET("", statusPageHandler.List)
+		statusPages.GET("/:id", statusPageHandler.Get)
+		statusPages.POST("", adminGuard, statusPageHandler.Create)
+		statusPages.PUT("/:id", adminGuard, statusPageHandler.Update)
+		statusPages.DELETE("/:id", adminGuard, statusPageHandler.Delete)
 	}
 
 	defer scheduler.Stop()

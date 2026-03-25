@@ -108,6 +108,71 @@ definitions:
       user:
         type: string
     type: object
+  handler.statusPageResponse:
+    properties:
+      accent_color:
+        type: string
+      created_at:
+        type: string
+      custom_domain:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      logo_url:
+        type: string
+      slug:
+        type: string
+      tag_ids:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+    type: object
+  handler.statusPageWriteRequest:
+    properties:
+      accent_color:
+        type: string
+      custom_domain:
+        type: string
+      description:
+        type: string
+      logo_url:
+        type: string
+      slug:
+        type: string
+      tag_ids:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+    required:
+    - title
+    type: object
+  handler.tagResponse:
+    properties:
+      color:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  handler.tagWriteRequest:
+    properties:
+      color:
+        type: string
+      name:
+        type: string
+    required:
+    - color
+    - name
+    type: object
 info:
   contact: {}
   description: Open-source uptime monitoring platform
@@ -505,6 +570,97 @@ paths:
       summary: Get aggregated stats for a monitor
       tags:
       - monitors
+  /monitors/{id}/tags:
+    get:
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Get tags for a monitor
+      tags:
+      - monitors
+  /monitors/{id}/tags/{tagId}:
+    delete:
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Tag ID
+        in: path
+        name: tagId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      security:
+      - Bearer: []
+      summary: Remove a tag from a monitor
+      tags:
+      - monitors
+    post:
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Tag ID
+        in: path
+        name: tagId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Assign a tag to a monitor
+      tags:
+      - monitors
+  /s/{slug}:
+    get:
+      parameters:
+      - description: Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get public status page by slug
+      tags:
+      - status-pages
   /settings/smtp:
     get:
       produces:
@@ -561,6 +717,201 @@ paths:
       summary: Update SMTP settings
       tags:
       - settings
+  /status-pages:
+    get:
+      parameters:
+      - default: 1
+        description: Page
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: List status pages
+      tags:
+      - status-pages
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Status Page
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.statusPageWriteRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.statusPageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Create a status page
+      tags:
+      - status-pages
+  /status-pages/{id}:
+    delete:
+      parameters:
+      - description: Status Page ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Delete a status page
+      tags:
+      - status-pages
+    get:
+      parameters:
+      - description: Status Page ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.statusPageResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Get status page by ID
+      tags:
+      - status-pages
+    put:
+      parameters:
+      - description: Status Page ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Status Page
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.statusPageWriteRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.statusPageResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Update a status page
+      tags:
+      - status-pages
+  /tags:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: List all tags
+      tags:
+      - tags
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tag
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.tagWriteRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.tagResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Create a tag
+      tags:
+      - tags
+  /tags/{id}:
+    delete:
+      parameters:
+      - description: Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Delete a tag
+      tags:
+      - tags
   /users:
     get:
       parameters:
