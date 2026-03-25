@@ -198,5 +198,64 @@ func TestRunCheck_UnknownToDown_OpensIncident(t *testing.T) {
 	incidentRepo.AssertCalled(t, "Create", mock.Anything, mock.AnythingOfType("*domain.Incident"))
 }
 
+type stubCheckerService struct {
+	status string
+	pingMS int
+}
+
+func (s *stubCheckerService) Check(_ context.Context, _ *domain.Monitor) (*domain.Heartbeat, error) {
+	return &domain.Heartbeat{Status: s.status, PingMS: s.pingMS, CheckedAt: time.Now()}, nil
+}
+
+type stubHub struct{}
+
+func (h *stubHub) Broadcast(_ []byte) {}
+
+func TestRunCheck_Down_CallsNotifier(t *testing.T) {
+	monitorRepo := mocks.NewMonitorRepository(t)
+	heartbeatRepo := mocks.NewHeartbeatRepository(t)
+	incidentRepo := mocks.NewIncidentRepository(t)
+	notifier := mocks.NewNotifier(t)
+
+	monitor := &domain.Monitor{ID: "m1", Name: "API", LastStatus: "up", Enabled: true, CheckType: domain.CheckHTTP}
+	monitorRepo.On("FindByID", mock.Anything, "m1").Return(monitor, nil)
+	monitorRepo.On("UpdateLastStatus", mock.Anything, "m1", "down").Return(nil)
+	heartbeatRepo.On("Create", mock.Anything, mock.Anything).Return(nil)
+	incidentRepo.On("Create", mock.Anything, mock.Anything).Return(nil)
+	notifier.On("Notify", mock.Anything, "m1", domain.EventDown).Return()
+
+	stubChecker := &stubCheckerService{status: "down", pingMS: 0}
+	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo,
+		map[domain.CheckType]port.CheckerService{domain.CheckHTTP: stubChecker}, &stubHub{})
+	uc.SetNotifier(notifier)
+	uc.RunCheck(context.Background(), "m1")
+
+	time.Sleep(50 * time.Millisecond)
+	notifier.AssertCalled(t, "Notify", mock.Anything, "m1", domain.EventDown)
+}
+
+func TestRunCheck_Recovery_CallsNotifier(t *testing.T) {
+	monitorRepo := mocks.NewMonitorRepository(t)
+	heartbeatRepo := mocks.NewHeartbeatRepository(t)
+	incidentRepo := mocks.NewIncidentRepository(t)
+	notifier := mocks.NewNotifier(t)
+
+	monitor := &domain.Monitor{ID: "m1", Name: "API", LastStatus: "down", Enabled: true, CheckType: domain.CheckHTTP}
+	monitorRepo.On("FindByID", mock.Anything, "m1").Return(monitor, nil)
+	monitorRepo.On("UpdateLastStatus", mock.Anything, "m1", "up").Return(nil)
+	heartbeatRepo.On("Create", mock.Anything, mock.Anything).Return(nil)
+	incidentRepo.On("Resolve", mock.Anything, "m1", mock.Anything).Return(nil)
+	notifier.On("Notify", mock.Anything, "m1", domain.EventUp).Return()
+
+	stubChecker := &stubCheckerService{status: "up", pingMS: 100}
+	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo,
+		map[domain.CheckType]port.CheckerService{domain.CheckHTTP: stubChecker}, &stubHub{})
+	uc.SetNotifier(notifier)
+	uc.RunCheck(context.Background(), "m1")
+
+	time.Sleep(50 * time.Millisecond)
+	notifier.AssertCalled(t, "Notify", mock.Anything, "m1", domain.EventUp)
+}
+
 // Ensure assert is used (avoids import error if no direct assertion is made).
 var _ = assert.New

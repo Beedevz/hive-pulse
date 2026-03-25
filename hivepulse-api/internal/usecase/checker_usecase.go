@@ -25,6 +25,7 @@ type CheckerUsecase struct {
 	incidents  port.IncidentRepository
 	checkers   map[domain.CheckType]port.CheckerService
 	hub        port.WSBroadcaster
+	notifier   port.Notifier
 }
 
 func NewCheckerUsecase(
@@ -42,6 +43,8 @@ func NewCheckerUsecase(
 		hub:        hub,
 	}
 }
+
+func (u *CheckerUsecase) SetNotifier(n port.Notifier) { u.notifier = n }
 
 // RunCheck implements port.CheckRunner.
 func (u *CheckerUsecase) RunCheck(ctx context.Context, monitorID string) {
@@ -88,9 +91,15 @@ func (u *CheckerUsecase) RunCheck(ctx context.Context, monitorID string) {
 		}); err != nil {
 			log.Printf("checker: incidents.Create failed for %q: %v", monitorID, err)
 		}
+		if u.notifier != nil {
+			go u.notifier.Notify(ctx, monitorID, domain.EventDown)
+		}
 	case prevStatus == "down" && newStatus == "up":
 		if err := u.incidents.Resolve(ctx, monitorID, heartbeat.CheckedAt); err != nil {
 			log.Printf("checker: incidents.Resolve failed for %q: %v", monitorID, err)
+		}
+		if u.notifier != nil {
+			go u.notifier.Notify(ctx, monitorID, domain.EventUp)
 		}
 	}
 
