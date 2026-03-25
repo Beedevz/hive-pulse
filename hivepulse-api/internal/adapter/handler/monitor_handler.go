@@ -43,20 +43,28 @@ func NewMonitorHandler(svc MonitorService, heartbeat HeartbeatService, stats Sta
 }
 
 type monitorResponse struct {
-	ID         string  `json:"id"`
-	Name       string  `json:"name"`
-	CheckType  string  `json:"check_type"`
-	Interval   int     `json:"interval"`
-	Timeout    int     `json:"timeout"`
-	Enabled    bool    `json:"enabled"`
-	URL        string  `json:"url,omitempty"`
-	Host       string  `json:"host,omitempty"`
-	Port       int     `json:"port,omitempty"`
-	PingHost   string  `json:"ping_host,omitempty"`
-	DNSHost    string  `json:"dns_host,omitempty"`
-	LastStatus string  `json:"last_status"`
-	Uptime24h  float64 `json:"uptime_24h"`
-	CreatedAt  string  `json:"created_at"`
+	ID              string  `json:"id"`
+	Name            string  `json:"name"`
+	CheckType       string  `json:"check_type"`
+	Interval        int     `json:"interval"`
+	Timeout         int     `json:"timeout"`
+	Retries         int     `json:"retries"`
+	RetryInterval   int     `json:"retry_interval"`
+	Enabled         bool    `json:"enabled"`
+	URL             string  `json:"url,omitempty"`
+	Method          string  `json:"method,omitempty"`
+	ExpectedStatus  int     `json:"expected_status,omitempty"`
+	FollowRedirects bool    `json:"follow_redirects,omitempty"`
+	Host            string  `json:"host,omitempty"`
+	Port            int     `json:"port,omitempty"`
+	PingHost        string  `json:"ping_host,omitempty"`
+	PacketCount     int     `json:"packet_count,omitempty"`
+	DNSHost         string  `json:"dns_host,omitempty"`
+	RecordType      string  `json:"record_type,omitempty"`
+	DNSServer       string  `json:"dns_server,omitempty"`
+	LastStatus      string  `json:"last_status"`
+	Uptime24h       float64 `json:"uptime_24h"`
+	CreatedAt       string  `json:"created_at"`
 }
 
 func resolveStats(lastStatus string, up, total int64) (string, float64) {
@@ -74,8 +82,11 @@ func toMonitorResponse(m *domain.Monitor, lastStatus string, uptime24h float64) 
 	}
 	return monitorResponse{
 		ID: m.ID, Name: m.Name, CheckType: string(m.CheckType),
-		Interval: m.Interval, Timeout: m.Timeout, Enabled: m.Enabled,
-		URL: m.URL, Host: m.Host, Port: m.Port, PingHost: m.PingHost, DNSHost: m.DNSHost,
+		Interval: m.Interval, Timeout: m.Timeout, Retries: m.Retries, RetryInterval: m.RetryInterval, Enabled: m.Enabled,
+		URL: m.URL, Method: m.Method, ExpectedStatus: m.ExpectedStatus, FollowRedirects: m.FollowRedirects,
+		Host: m.Host, Port: m.Port,
+		PingHost: m.PingHost, PacketCount: m.PacketCount,
+		DNSHost: m.DNSHost, RecordType: m.RecordType, DNSServer: m.DNSServer,
 		LastStatus: lastStatus, Uptime24h: uptime24h, CreatedAt: createdAt,
 	}
 }
@@ -122,7 +133,9 @@ func (h *MonitorHandler) Get(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 		return
 	}
-	c.JSON(http.StatusOK, toMonitorResponse(m, m.LastStatus, 0.0))
+	up, total, _ := h.heartbeat.GetUptime(c.Request.Context(), m.ID, time.Now().Add(-24*time.Hour))
+	_, uptime24h := resolveStats(m.LastStatus, up, total)
+	c.JSON(http.StatusOK, toMonitorResponse(m, m.LastStatus, uptime24h))
 }
 
 type monitorWriteRequest struct {

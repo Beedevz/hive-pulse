@@ -28,6 +28,7 @@ export const colors = {
   darkBorderHover: 'rgba(245,166,35,0.22)', // TH.bh
   darkInput:       'rgba(35,38,58,0.8)',   // TH.ip
   darkSurface2:    'rgba(35,38,60,0.6)',   // TH.sa (alt surface)
+  leftPanelBg:     '#1e2235',              // LeftPanel background
 
   // ── Light surfaces (warm cream) ───────────────────────────────────────────
   lightBg:          '#f5f3ec',             // TH.bg

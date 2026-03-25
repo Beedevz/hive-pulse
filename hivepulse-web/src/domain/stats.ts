@@ -11,4 +11,4 @@ export interface StatsResponse {
   buckets: StatsBucket[];
 }
 
-export type StatsRange = '24h' | '7d' | '90d';
+export type StatsRange = '24h' | '7d' | '30d' | '90d';

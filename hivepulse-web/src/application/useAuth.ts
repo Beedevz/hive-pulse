@@ -49,5 +49,5 @@ export const useInitAuth = () => {
       .then((r) => setToken(r.data.access_token))
       .catch(() => {})
       .finally(() => setHydrated())
-  }, [])
+  }, [setToken, setHydrated])
 }

@@ -1,5 +1,5 @@
 import Typography from '@mui/material/Typography'
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import type { StatsBucket, StatsRange } from '../../domain/stats'
 
 interface Props {
@@ -28,10 +28,15 @@ export function ResponseTimeChart({ buckets, range }: Readonly<Props>) {
   return (
     <ResponsiveContainer width="100%" height={200}>
       <LineChart data={data}>
-        <XAxis dataKey="time" />
-        <YAxis unit=" ms" />
-        <Tooltip />
-        <Line type="monotone" dataKey="avg_ping_ms" stroke="#1976d2" dot={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+        <XAxis dataKey="time" tick={{ fontSize: 11 }} />
+        <YAxis unit=" ms" tick={{ fontSize: 11 }} width={52} />
+        <Tooltip
+          contentStyle={{ background: '#1e2235', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, fontSize: 12 }}
+          labelStyle={{ color: '#9ca3af' }}
+          itemStyle={{ color: '#e2e8f0' }}
+        />
+        <Line type="monotone" dataKey="avg_ping_ms" stroke="#F5A623" strokeWidth={1.5} dot={false} activeDot={{ r: 4 }} />
       </LineChart>
     </ResponsiveContainer>
   )

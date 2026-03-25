@@ -1,8 +1,7 @@
 import { render } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
 import { UptimeBar } from '../UptimeBar'
-
-type BlockStatus = 'up' | 'down' | 'slow' | 'unknown'
+import type { BlockStatus } from '../UptimeBar'
 
 describe('UptimeBar', () => {
   it('renders exactly 48 blocks', () => {

@@ -17,7 +17,6 @@ import type { SMTPSettings } from '../../application/useNotifications'
 import { UserTable } from '../components/UserTable'
 import { ChannelCard } from '../components/ChannelCard'
 import { ChannelModal } from '../components/ChannelModal'
-import { Sidebar } from '../components/Sidebar'
 import type { NotificationChannel, CreateChannelInput } from '../../domain/notification'
 
 function SMTPForm() {
@@ -172,10 +171,7 @@ export function SettingsPage() {
   const deleteUserMutation = useDeleteUser()
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      <Sidebar />
-
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <Box sx={{ px: 4, py: 2.5, borderBottom: '1px solid', borderColor: 'divider' }}>
           <Typography variant="h6" fontWeight={600} color="text.primary" fontSize="1.0625rem">
             Settings
@@ -220,7 +216,6 @@ export function SettingsPage() {
             <NotificationsTab />
           )}
         </Box>
-      </Box>
     </Box>
   )
 }

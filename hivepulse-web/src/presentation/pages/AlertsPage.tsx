@@ -11,7 +11,6 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import { useIncidents } from '../../application/useIncidents'
 import type { IncidentFilter } from '../../application/useIncidents'
 import type { Incident } from '../../domain/incident'
-import { Sidebar } from '../components/Sidebar'
 
 function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600)
@@ -135,10 +134,7 @@ export function AlertsPage() {
   const showResolved = filter === 'all' || filter === 'resolved'
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      <Sidebar />
-
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 4, py: 2.5, borderBottom: '1px solid', borderColor: 'divider' }}>
           <Box>
@@ -218,7 +214,6 @@ export function AlertsPage() {
             </Box>
           )}
         </Box>
-      </Box>
     </Box>
   )
 }

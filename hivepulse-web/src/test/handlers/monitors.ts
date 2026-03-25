@@ -21,17 +21,20 @@ const mockMonitor: Monitor = {
 }
 
 export const monitorHandlers = [
-  http.get('/api/v1/monitors', () =>
+  http.get('http://localhost:8080/api/v1/monitors', () =>
     HttpResponse.json({ data: [mockMonitor], total: 1, page: 1, limit: 20 })
   ),
-  http.post('/api/v1/monitors', () =>
+  http.post('http://localhost:8080/api/v1/monitors', () =>
     HttpResponse.json({ message: 'monitor created' }, { status: 201 })
   ),
-  http.get('/api/v1/monitors/:id', () => HttpResponse.json(mockMonitor)),
-  http.put('/api/v1/monitors/:id', () =>
+  http.get('http://localhost:8080/api/v1/monitors/:id', () => HttpResponse.json(mockMonitor)),
+  http.put('http://localhost:8080/api/v1/monitors/:id', () =>
     HttpResponse.json({ message: 'monitor updated' })
   ),
-  http.delete('/api/v1/monitors/:id', () => new HttpResponse(null, { status: 204 })),
+  http.delete('http://localhost:8080/api/v1/monitors/:id', () => new HttpResponse(null, { status: 204 })),
+  http.get('http://localhost:8080/api/v1/monitors/:id/stats', () =>
+    HttpResponse.json({ uptime_pct: 100, avg_ping_ms: 42, buckets: [] })
+  ),
   http.get('http://localhost:8080/api/v1/monitors/:id/heartbeats', () => {
     return HttpResponse.json({
       data: Array.from({ length: 48 }, (_, i) => ({
