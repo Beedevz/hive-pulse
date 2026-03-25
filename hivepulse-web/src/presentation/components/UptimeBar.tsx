@@ -1,7 +1,7 @@
 import { useTheme } from '@mui/material/styles'
 import { colors } from '../../shared/colors'
 
-type BlockStatus = 'up' | 'down' | 'slow' | 'unknown'
+type BlockStatus = 'up' | 'down' | 'unknown'
 
 interface UptimeBarProps {
   blocks: BlockStatus[]
@@ -14,7 +14,6 @@ export function UptimeBar({ blocks }: Readonly<UptimeBarProps>) {
   const colorMap: Record<BlockStatus, string> = {
     up:      isDark ? colors.up   : colors.upL,
     down:    isDark ? colors.down : colors.downL,
-    slow:    isDark ? colors.slow : colors.slowL,
     unknown: isDark ? colors.darkTextTertiary : colors.lightTextTertiary,
   }
 

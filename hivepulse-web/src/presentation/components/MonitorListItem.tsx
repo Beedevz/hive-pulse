@@ -10,11 +10,9 @@ import type { Monitor } from '../../domain/monitor'
 
 function getStatusColor(status: string, isDark: boolean): string {
   const map: Record<string, [string, string]> = {
-    up:          [colors.up,   colors.upL],
-    down:        [colors.down, colors.downL],
-    slow:        [colors.slow, colors.slowL],
-    degraded:    [colors.slow, colors.slowL],
-    maintenance: [colors.blue, colors.blueL],
+    up:       [colors.up,   colors.upL],
+    down:     [colors.down, colors.downL],
+    unknown:  [colors.darkTextTertiary, colors.lightTextTertiary],
   }
   const pair = map[status] ?? [colors.darkTextTertiary, colors.lightTextTertiary]
   return isDark ? pair[0] : pair[1]
@@ -35,7 +33,7 @@ export const MonitorListItem = forwardRef<HTMLDivElement, MonitorListItemProps>(
     const { data: hbData } = useHeartbeats(monitor.id)
     const heartbeats = hbData?.data ?? []
     const blocks = heartbeats.length > 0
-      ? heartbeats.map((h) => h.status as 'up' | 'down' | 'slow' | 'unknown')
+      ? heartbeats.map((h) => h.status as 'up' | 'down' | 'unknown')
       : new Array(48).fill('unknown' as const)
     const avgPing = heartbeats.length > 0
       ? Math.round(heartbeats.reduce((s, h) => s + h.ping_ms, 0) / heartbeats.length)
