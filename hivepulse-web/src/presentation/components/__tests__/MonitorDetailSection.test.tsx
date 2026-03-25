@@ -8,8 +8,10 @@ import { MonitorDetailSection } from '../MonitorDetailSection'
 
 vi.mock('../../../application/useAuth', async (orig) => {
   const actual = await orig<typeof import('../../../application/useAuth')>()
-  return { ...actual, useMe: () => ({ data: { email: 'admin@example.com', role: 'admin' } }) }
+  return { ...actual, useMe: vi.fn(() => ({ data: { email: 'admin@example.com', role: 'admin' } })) }
 })
+
+import { useMe } from '../../../application/useAuth'
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <ThemeProvider>
@@ -32,7 +34,7 @@ describe('MonitorDetailSection', () => {
     render(<MonitorDetailSection monitorId="monitor-1" onEdit={onEdit} />, { wrapper })
     await waitFor(() => screen.getByText('Test API'))
     fireEvent.click(screen.getByRole('button', { name: /edit/i }))
-    expect(onEdit).toHaveBeenCalled()
+    expect(onEdit).toHaveBeenCalledWith(expect.objectContaining({ id: 'monitor-1', name: 'Test API' }))
   })
 
   it('calls onDelete when Delete confirmed', async () => {
@@ -42,5 +44,18 @@ describe('MonitorDetailSection', () => {
     await waitFor(() => screen.getByText('Test API'))
     fireEvent.click(screen.getByRole('button', { name: /delete/i }))
     expect(onDelete).toHaveBeenCalledWith('monitor-1')
+  })
+
+  it('hides Edit/Delete buttons for viewer role', async () => {
+    vi.mocked(useMe).mockReturnValue({ data: { email: 'viewer@example.com', role: 'viewer' } } as any)
+    render(<MonitorDetailSection monitorId="monitor-1" />, { wrapper })
+    await waitFor(() => screen.getByText('Test API'))
+    expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument()
+  })
+
+  it('shows loading state before data arrives', () => {
+    render(<MonitorDetailSection monitorId="monitor-1" />, { wrapper })
+    expect(document.querySelector('.MuiCircularProgress-root')).toBeInTheDocument()
   })
 })
