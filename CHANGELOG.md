@@ -2,6 +2,11 @@
 
 All notable changes to HivePulse are documented here.
 
+## [v0.7.0] — 2026-03-25
+
+### 🚀 New Features
+
+- Add packet_count and dns_server fields to MonitorModal; show host:port and record_type in MonitorCard ([`7816ae7`](https://github.com/Beedevz/hivepulse/commit/7816ae79f4d38aa6308575f5a05dd6c3011597f3))
 ## [v0.6.0] — 2026-03-25
 
 ### 🐛 Bug Fixes
