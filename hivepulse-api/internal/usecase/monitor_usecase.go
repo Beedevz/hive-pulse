@@ -161,3 +161,18 @@ func (u *MonitorUsecase) DeleteMonitor(ctx context.Context, id string) error {
 	u.scheduler.Remove(id)
 	return u.repo.Delete(ctx, id)
 }
+
+func (u *MonitorUsecase) AssignTag(ctx context.Context, monitorID, tagID string) error {
+	if _, err := u.repo.FindByID(ctx, monitorID); err != nil {
+		return fmt.Errorf("%w", domain.ErrNotFound)
+	}
+	return u.repo.AssignTag(ctx, monitorID, tagID)
+}
+
+func (u *MonitorUsecase) UnassignTag(ctx context.Context, monitorID, tagID string) error {
+	return u.repo.UnassignTag(ctx, monitorID, tagID)
+}
+
+func (u *MonitorUsecase) GetTags(ctx context.Context, monitorID string) ([]*domain.Tag, error) {
+	return u.repo.FindTagsByMonitor(ctx, monitorID)
+}

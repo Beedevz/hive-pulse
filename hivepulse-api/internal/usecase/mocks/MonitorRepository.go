@@ -183,6 +183,102 @@ func (_m *MonitorRepository) UpdateLastStatus(ctx context.Context, monitorID str
 	return r0
 }
 
+// AssignTag provides a mock function with given fields: ctx, monitorID, tagID
+func (_m *MonitorRepository) AssignTag(ctx context.Context, monitorID string, tagID string) error {
+	ret := _m.Called(ctx, monitorID, tagID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AssignTag")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, monitorID, tagID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UnassignTag provides a mock function with given fields: ctx, monitorID, tagID
+func (_m *MonitorRepository) UnassignTag(ctx context.Context, monitorID string, tagID string) error {
+	ret := _m.Called(ctx, monitorID, tagID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UnassignTag")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, monitorID, tagID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// FindTagsByMonitor provides a mock function with given fields: ctx, monitorID
+func (_m *MonitorRepository) FindTagsByMonitor(ctx context.Context, monitorID string) ([]*domain.Tag, error) {
+	ret := _m.Called(ctx, monitorID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindTagsByMonitor")
+	}
+
+	var r0 []*domain.Tag
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]*domain.Tag, error)); ok {
+		return rf(ctx, monitorID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []*domain.Tag); ok {
+		r0 = rf(ctx, monitorID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*domain.Tag)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, monitorID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// FindByTagIDs provides a mock function with given fields: ctx, tagIDs
+func (_m *MonitorRepository) FindByTagIDs(ctx context.Context, tagIDs []string) ([]*domain.Monitor, error) {
+	ret := _m.Called(ctx, tagIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindByTagIDs")
+	}
+
+	var r0 []*domain.Monitor
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]*domain.Monitor, error)); ok {
+		return rf(ctx, tagIDs)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []string) []*domain.Monitor); ok {
+		r0 = rf(ctx, tagIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*domain.Monitor)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
+		r1 = rf(ctx, tagIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewMonitorRepository creates a new instance of MonitorRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMonitorRepository(t interface {

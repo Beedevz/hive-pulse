@@ -32,6 +32,10 @@ type MonitorRepository interface {
 	Delete(ctx context.Context, id string) error
 	FindAllEnabled(ctx context.Context) ([]*domain.Monitor, error)
 	UpdateLastStatus(ctx context.Context, monitorID string, status string) error
+	AssignTag(ctx context.Context, monitorID, tagID string) error
+	UnassignTag(ctx context.Context, monitorID, tagID string) error
+	FindTagsByMonitor(ctx context.Context, monitorID string) ([]*domain.Tag, error)
+	FindByTagIDs(ctx context.Context, tagIDs []string) ([]*domain.Monitor, error)
 }
 
 type HeartbeatRepository interface {

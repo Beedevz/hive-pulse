@@ -203,3 +203,59 @@ func (r *MonitorRepo) UpdateLastStatus(ctx context.Context, monitorID string, st
 		Where("id = ?", monitorID).
 		Update("last_status", status).Error
 }
+
+type monitorTagJoin struct {
+	MonitorID string
+	TagID     string
+}
+
+func (monitorTagJoin) TableName() string { return "monitor_tags" }
+
+func (r *MonitorRepo) AssignTag(ctx context.Context, monitorID, tagID string) error {
+	join := monitorTagJoin{MonitorID: monitorID, TagID: tagID}
+	return r.db.WithContext(ctx).
+		Where(monitorTagJoin{MonitorID: monitorID, TagID: tagID}).
+		FirstOrCreate(&join).Error
+}
+
+func (r *MonitorRepo) UnassignTag(ctx context.Context, monitorID, tagID string) error {
+	return r.db.WithContext(ctx).
+		Where("monitor_id = ? AND tag_id = ?", monitorID, tagID).
+		Delete(&monitorTagJoin{}).Error
+}
+
+func (r *MonitorRepo) FindTagsByMonitor(ctx context.Context, monitorID string) ([]*domain.Tag, error) {
+	var tags []tagModel
+	err := r.db.WithContext(ctx).
+		Joins("JOIN monitor_tags ON monitor_tags.tag_id = tags.id").
+		Where("monitor_tags.monitor_id = ?", monitorID).
+		Find(&tags).Error
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*domain.Tag, len(tags))
+	for i, t := range tags {
+		out[i] = &domain.Tag{ID: t.ID, Name: t.Name, Color: t.Color, CreatedAt: t.CreatedAt}
+	}
+	return out, nil
+}
+
+func (r *MonitorRepo) FindByTagIDs(ctx context.Context, tagIDs []string) ([]*domain.Monitor, error) {
+	if len(tagIDs) == 0 {
+		return nil, nil
+	}
+	var models []monitorModel
+	err := r.db.WithContext(ctx).
+		Joins("JOIN monitor_tags ON monitor_tags.monitor_id = monitors.id").
+		Where("monitor_tags.tag_id IN ?", tagIDs).
+		Distinct("monitors.*").
+		Find(&models).Error
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*domain.Monitor, len(models))
+	for i, m := range models {
+		out[i] = toDomainMonitor(&m)
+	}
+	return out, nil
+}
