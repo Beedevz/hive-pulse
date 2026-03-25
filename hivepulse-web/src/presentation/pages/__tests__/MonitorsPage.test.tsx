@@ -43,9 +43,9 @@ describe('MonitorsPage', () => {
 
   it('renders MonitorDetailSection when :id present', async () => {
     renderAt('/monitors/monitor-1')
-    // MonitorDetailSection shows the monitor name in its header
+    // MonitorDetailSection shows Edit/Delete buttons for admin users
     await waitFor(() =>
-      expect(screen.getAllByText('Test API').length).toBeGreaterThan(0)
+      expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument()
     )
   })
 })
