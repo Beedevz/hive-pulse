@@ -45,3 +45,23 @@ type ReminderTarget struct {
 	MonitorID string
 	ChannelID string
 }
+
+// ScheduleRule defines the days and time window for sending notifications.
+type ScheduleRule struct {
+	Days  []string `json:"days"`  // e.g. ["mon","tue","wed","thu","fri"]
+	Start string   `json:"start"` // "HH:MM" 24-hour
+	End   string   `json:"end"`   // "HH:MM" 24-hour
+}
+
+// AssignmentTriggers controls when a notification is sent for a specific
+// monitor-channel assignment.
+type AssignmentTriggers struct {
+	CooldownMinutes int           `json:"cooldown_minutes"` // 0 = disabled
+	Schedule        *ScheduleRule `json:"schedule,omitempty"`
+}
+
+// MonitorChannelAssignment pairs a channel with its per-assignment triggers.
+type MonitorChannelAssignment struct {
+	Channel  *NotificationChannel
+	Triggers AssignmentTriggers
+}

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../infrastructure/apiClient'
-import type { NotificationChannel, NotificationLog, CreateChannelInput } from '../domain/notification'
+import type { NotificationChannel, NotificationLog, CreateChannelInput, MonitorChannelAssignment, AssignmentTriggers } from '../domain/notification'
 
 export const useChannels = () =>
   useQuery<NotificationChannel[]>({
@@ -45,7 +45,7 @@ export const useChannelLogs = (channelId: string) =>
   })
 
 export const useMonitorChannels = (monitorId: string) =>
-  useQuery<NotificationChannel[]>({
+  useQuery<MonitorChannelAssignment[]>({
     queryKey: ['monitor-channels', monitorId],
     queryFn: () =>
       apiClient.get(`/monitors/${monitorId}/channels`).then((r) => r.data.data),
@@ -69,6 +69,15 @@ export const useUnassignChannel = () => {
       apiClient.delete(`/monitors/${monitorId}/channels/${channelId}`).then((r) => r.data),
     onSuccess: (_, { monitorId }) =>
       qc.invalidateQueries({ queryKey: ['monitor-channels', monitorId] }),
+  })
+}
+
+export const useUpdateAssignmentTriggers = (monitorId: string) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ channelId, triggers }: { channelId: string; triggers: AssignmentTriggers }) =>
+      apiClient.put(`/monitors/${monitorId}/channels/${channelId}/triggers`, triggers).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['monitor-channels', monitorId] }),
   })
 }
 

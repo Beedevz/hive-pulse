@@ -103,10 +103,25 @@ func (r *NotificationRepo) GetChannel(ctx context.Context, id string) (*domain.N
 	return toDomainChannel(&m)
 }
 
-func (r *NotificationRepo) GetChannelsForMonitor(ctx context.Context, monitorID string) ([]*domain.NotificationChannel, error) {
-	var rows []notificationChannelModel
+type monitorChannelRow struct {
+	// notification_channels columns
+	ID                string    `gorm:"column:id"`
+	Name              string    `gorm:"column:name"`
+	Type              string    `gorm:"column:type"`
+	Config            []byte    `gorm:"column:config"`
+	IsGlobal          bool      `gorm:"column:is_global"`
+	Enabled           bool      `gorm:"column:enabled"`
+	RemindIntervalMin int       `gorm:"column:remind_interval_min"`
+	CreatedAt         time.Time `gorm:"column:created_at"`
+	UpdatedAt         time.Time `gorm:"column:updated_at"`
+	// junction column
+	Triggers []byte `gorm:"column:triggers"`
+}
+
+func (r *NotificationRepo) GetChannelsForMonitor(ctx context.Context, monitorID string) ([]domain.MonitorChannelAssignment, error) {
+	var rows []monitorChannelRow
 	err := r.db.WithContext(ctx).Raw(
-		`SELECT nc.* FROM notification_channels nc
+		`SELECT nc.*, mnc.triggers FROM notification_channels nc
 		 JOIN monitor_notification_channels mnc ON mnc.channel_id = nc.id
 		 WHERE mnc.monitor_id = ? AND nc.enabled = true`,
 		monitorID,
@@ -114,22 +129,80 @@ func (r *NotificationRepo) GetChannelsForMonitor(ctx context.Context, monitorID 
 	if err != nil {
 		return nil, err
 	}
-	if len(rows) > 0 {
-		return toChannelSlice(rows)
+	if len(rows) == 0 {
+		// fallback: global channels when monitor has no specific assignments
+		var globalRows []notificationChannelModel
+		err = r.db.WithContext(ctx).Raw(
+			`SELECT * FROM notification_channels
+			 WHERE is_global = true AND enabled = true
+			 AND NOT EXISTS (
+			     SELECT 1 FROM monitor_notification_channels mnc2 WHERE mnc2.monitor_id = ?
+			 )`,
+			monitorID,
+		).Scan(&globalRows).Error
+		if err != nil {
+			return nil, err
+		}
+		result := make([]domain.MonitorChannelAssignment, len(globalRows))
+		for i := range globalRows {
+			ch, err := toDomainChannel(&globalRows[i])
+			if err != nil {
+				return nil, err
+			}
+			result[i] = domain.MonitorChannelAssignment{Channel: ch}
+		}
+		return result, nil
 	}
-	// fallback: global channels when monitor has no specific assignments
-	err = r.db.WithContext(ctx).Raw(
-		`SELECT * FROM notification_channels
-		 WHERE is_global = true AND enabled = true
-		 AND NOT EXISTS (
-		     SELECT 1 FROM monitor_notification_channels mnc2 WHERE mnc2.monitor_id = ?
-		 )`,
-		monitorID,
-	).Scan(&rows).Error
+	result := make([]domain.MonitorChannelAssignment, len(rows))
+	for i, row := range rows {
+		ch, err := toDomainChannel(&notificationChannelModel{
+			ID: row.ID, Name: row.Name, Type: row.Type, Config: row.Config,
+			IsGlobal: row.IsGlobal, Enabled: row.Enabled,
+			RemindIntervalMin: row.RemindIntervalMin,
+			CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt,
+		})
+		if err != nil {
+			return nil, err
+		}
+		var triggers domain.AssignmentTriggers
+		if len(row.Triggers) > 0 && string(row.Triggers) != "{}" {
+			_ = json.Unmarshal(row.Triggers, &triggers)
+		}
+		result[i] = domain.MonitorChannelAssignment{Channel: ch, Triggers: triggers}
+	}
+	return result, nil
+}
+
+func (r *NotificationRepo) UpdateAssignmentTriggers(ctx context.Context, monitorID, channelID string, triggers domain.AssignmentTriggers) error {
+	b, err := json.Marshal(triggers)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return toChannelSlice(rows)
+	result := r.db.WithContext(ctx).Exec(
+		`UPDATE monitor_notification_channels SET triggers = ?::jsonb WHERE monitor_id = ? AND channel_id = ?`,
+		string(b), monitorID, channelID,
+	)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return domain.ErrNotFound
+	}
+	return nil
+}
+
+func (r *NotificationRepo) LastSentAt(ctx context.Context, monitorID, channelID string) (time.Time, error) {
+	var sentAt time.Time
+	err := r.db.WithContext(ctx).Raw(
+		`SELECT sent_at FROM notification_logs
+		 WHERE monitor_id = ? AND channel_id = ? AND status = 'sent'
+		 ORDER BY sent_at DESC LIMIT 1`,
+		monitorID, channelID,
+	).Scan(&sentAt).Error
+	if err != nil {
+		return time.Time{}, err
+	}
+	return sentAt, nil
 }
 
 func (r *NotificationRepo) AssignChannel(ctx context.Context, monitorID, channelID string) error {
@@ -267,18 +340,6 @@ func toDomainChannel(m *notificationChannelModel) (*domain.NotificationChannel, 
 		CreatedAt:         m.CreatedAt,
 		UpdatedAt:         m.UpdatedAt,
 	}, nil
-}
-
-func toChannelSlice(rows []notificationChannelModel) ([]*domain.NotificationChannel, error) {
-	result := make([]*domain.NotificationChannel, len(rows))
-	for i := range rows {
-		ch, err := toDomainChannel(&rows[i])
-		if err != nil {
-			return nil, err
-		}
-		result[i] = ch
-	}
-	return result, nil
 }
 
 func isNotFound(err error) bool {

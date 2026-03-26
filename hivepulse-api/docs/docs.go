@@ -523,6 +523,79 @@ const docTemplate = `{
                 }
             }
         },
+        "/monitors/{id}/channels/{channelId}/triggers": {
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "monitors"
+                ],
+                "summary": "Update trigger rules for a monitor-channel assignment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Monitor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Channel ID",
+                        "name": "channelId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Trigger rules",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.AssignmentTriggers"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/monitors/{id}/heartbeats": {
             "get": {
                 "security": [
@@ -765,6 +838,96 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/settings/general": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "settings"
+                ],
+                "summary": "Get general settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.GeneralSettings"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "settings"
+                ],
+                "summary": "Update general settings",
+                "parameters": [
+                    {
+                        "description": "General settings",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.GeneralSettings"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1360,6 +1523,47 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "domain.AssignmentTriggers": {
+            "type": "object",
+            "properties": {
+                "cooldown_minutes": {
+                    "description": "0 = disabled",
+                    "type": "integer"
+                },
+                "schedule": {
+                    "$ref": "#/definitions/domain.ScheduleRule"
+                }
+            }
+        },
+        "domain.GeneralSettings": {
+            "type": "object",
+            "properties": {
+                "timezone": {
+                    "description": "IANA timezone, e.g. \"Europe/Istanbul\"",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.ScheduleRule": {
+            "type": "object",
+            "properties": {
+                "days": {
+                    "description": "e.g. [\"mon\",\"tue\",\"wed\",\"thu\",\"fri\"]",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "end": {
+                    "description": "\"HH:MM\" 24-hour",
+                    "type": "string"
+                },
+                "start": {
+                    "description": "\"HH:MM\" 24-hour",
+                    "type": "string"
+                }
+            }
+        },
         "domain.StatsBucket": {
             "type": "object",
             "properties": {

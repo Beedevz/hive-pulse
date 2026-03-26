@@ -13,7 +13,9 @@ type NotificationRepository interface {
 	DeleteChannel(ctx context.Context, id string) error
 	ListChannels(ctx context.Context) ([]*domain.NotificationChannel, error)
 	GetChannel(ctx context.Context, id string) (*domain.NotificationChannel, error)
-	GetChannelsForMonitor(ctx context.Context, monitorID string) ([]*domain.NotificationChannel, error)
+	GetChannelsForMonitor(ctx context.Context, monitorID string) ([]domain.MonitorChannelAssignment, error)
+	UpdateAssignmentTriggers(ctx context.Context, monitorID, channelID string, triggers domain.AssignmentTriggers) error
+	LastSentAt(ctx context.Context, monitorID, channelID string) (time.Time, error)
 	AssignChannel(ctx context.Context, monitorID, channelID string) error
 	UnassignChannel(ctx context.Context, monitorID, channelID string) error
 	LogNotification(ctx context.Context, log *domain.NotificationLog) error

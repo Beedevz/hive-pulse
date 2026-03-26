@@ -9,7 +9,8 @@ import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
-import type { ChannelType } from '../../domain/notification'
+import type { ChannelType, MonitorChannelAssignment } from '../../domain/notification'
+import { AssignmentTriggerModal } from './AssignmentTriggerModal'
 import { useMonitor, useHeartbeats } from '../../application/useMonitors'
 import { useStats } from '../../application/useStats'
 import { useMe } from '../../application/useAuth'
@@ -50,8 +51,9 @@ function MonitorChannelsSection({ monitorId }: Readonly<{ monitorId: string }>) 
   const assign = useAssignChannel()
   const unassign = useUnassignChannel()
   const [selectedChannelId, setSelectedChannelId] = useState('')
+  const [triggerTarget, setTriggerTarget] = useState<MonitorChannelAssignment | null>(null)
 
-  const assignedIds = new Set(assigned.map((ch) => ch.id))
+  const assignedIds = new Set(assigned.map((a) => a.id))
   const unassigned = allChannels.filter((ch) => !assignedIds.has(ch.id))
 
   const handleAdd = () => {
@@ -95,9 +97,9 @@ function MonitorChannelsSection({ monitorId }: Readonly<{ monitorId: string }>) 
         </Box>
       ) : (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
-          {assigned.map((ch) => (
+          {assigned.map((a) => (
             <Chip
-              key={ch.id}
+              key={a.id}
               label={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                   <Box
@@ -107,20 +109,21 @@ function MonitorChannelsSection({ monitorId }: Readonly<{ monitorId: string }>) 
                       px: 0.75,
                       py: 0.125,
                       borderRadius: 0.5,
-                      bgcolor: `${channelTypeColor[ch.type as ChannelType]}22`,
-                      color: channelTypeColor[ch.type as ChannelType],
+                      bgcolor: `${channelTypeColor[a.type]}22`,
+                      color: channelTypeColor[a.type],
                       textTransform: 'uppercase',
                       letterSpacing: '0.05em',
                     }}
                   >
-                    {channelTypeLabel[ch.type as ChannelType] ?? ch.type}
+                    {channelTypeLabel[a.type] ?? a.type}
                   </Box>
                   <Typography fontSize="0.75rem" fontWeight={500} color="text.primary">
-                    {ch.name}
+                    {a.name}
                   </Typography>
                 </Box>
               }
-              onDelete={() => unassign.mutate({ monitorId, channelId: ch.id })}
+              onClick={() => setTriggerTarget(a)}
+              onDelete={() => unassign.mutate({ monitorId, channelId: a.id })}
               size="small"
               sx={{
                 height: 28,
@@ -128,6 +131,8 @@ function MonitorChannelsSection({ monitorId }: Readonly<{ monitorId: string }>) 
                 border: '1px solid',
                 borderColor: 'divider',
                 borderRadius: 1,
+                outline: (a.triggers.cooldown_minutes > 0 || !!a.triggers.schedule) ? '2px solid' : 'none',
+                outlineColor: (a.triggers.cooldown_minutes > 0 || !!a.triggers.schedule) ? 'primary.main' : 'transparent',
                 '& .MuiChip-label': { px: 1 },
                 '& .MuiChip-deleteIcon': { fontSize: 14, color: 'text.disabled', '&:hover': { color: 'error.main' } },
               }}
@@ -190,6 +195,15 @@ function MonitorChannelsSection({ monitorId }: Readonly<{ monitorId: string }>) 
             Assign
           </Button>
         </Box>
+      )}
+
+      {triggerTarget && (
+        <AssignmentTriggerModal
+          open={!!triggerTarget}
+          assignment={triggerTarget}
+          monitorId={monitorId}
+          onClose={() => setTriggerTarget(null)}
+        />
       )}
     </Box>
   )

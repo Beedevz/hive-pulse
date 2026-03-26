@@ -131,23 +131,23 @@ func (_m *NotificationRepository) GetChannel(ctx context.Context, id string) (*d
 }
 
 // GetChannelsForMonitor provides a mock function with given fields: ctx, monitorID
-func (_m *NotificationRepository) GetChannelsForMonitor(ctx context.Context, monitorID string) ([]*domain.NotificationChannel, error) {
+func (_m *NotificationRepository) GetChannelsForMonitor(ctx context.Context, monitorID string) ([]domain.MonitorChannelAssignment, error) {
 	ret := _m.Called(ctx, monitorID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetChannelsForMonitor")
 	}
 
-	var r0 []*domain.NotificationChannel
+	var r0 []domain.MonitorChannelAssignment
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) ([]*domain.NotificationChannel, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]domain.MonitorChannelAssignment, error)); ok {
 		return rf(ctx, monitorID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) []*domain.NotificationChannel); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) []domain.MonitorChannelAssignment); ok {
 		r0 = rf(ctx, monitorID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*domain.NotificationChannel)
+			r0 = ret.Get(0).([]domain.MonitorChannelAssignment)
 		}
 	}
 
@@ -181,6 +181,34 @@ func (_m *NotificationRepository) HasRecentSSLLog(ctx context.Context, monitorID
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, time.Duration) error); ok {
 		r1 = rf(ctx, monitorID, within)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// LastSentAt provides a mock function with given fields: ctx, monitorID, channelID
+func (_m *NotificationRepository) LastSentAt(ctx context.Context, monitorID string, channelID string) (time.Time, error) {
+	ret := _m.Called(ctx, monitorID, channelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for LastSentAt")
+	}
+
+	var r0 time.Time
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (time.Time, error)); ok {
+		return rf(ctx, monitorID, channelID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) time.Time); ok {
+		r0 = rf(ctx, monitorID, channelID)
+	} else {
+		r0 = ret.Get(0).(time.Time)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, monitorID, channelID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -277,6 +305,24 @@ func (_m *NotificationRepository) UnassignChannel(ctx context.Context, monitorID
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
 		r0 = rf(ctx, monitorID, channelID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateAssignmentTriggers provides a mock function with given fields: ctx, monitorID, channelID, triggers
+func (_m *NotificationRepository) UpdateAssignmentTriggers(ctx context.Context, monitorID string, channelID string, triggers domain.AssignmentTriggers) error {
+	ret := _m.Called(ctx, monitorID, channelID, triggers)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateAssignmentTriggers")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, domain.AssignmentTriggers) error); ok {
+		r0 = rf(ctx, monitorID, channelID, triggers)
 	} else {
 		r0 = ret.Error(0)
 	}

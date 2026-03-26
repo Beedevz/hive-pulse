@@ -29,7 +29,16 @@ export const notificationHandlers = [
     HttpResponse.json({ data: [] })
   ),
   http.get('http://localhost:8080/api/v1/monitors/:id/channels', () =>
-    HttpResponse.json({ data: [] })
+    HttpResponse.json({
+      data: [
+        {
+          id: 'ch-1',
+          name: 'Ops Email',
+          type: 'email',
+          triggers: { cooldown_minutes: 0 },
+        },
+      ],
+    })
   ),
   http.post('http://localhost:8080/api/v1/monitors/:id/channels/:chID', () =>
     new HttpResponse(null, { status: 201 })
@@ -45,5 +54,14 @@ export const notificationHandlers = [
   ),
   http.put('http://localhost:8080/api/v1/settings/smtp', () =>
     HttpResponse.json({ message: 'smtp settings updated' })
+  ),
+  http.put('http://localhost:8080/api/v1/monitors/:id/channels/:channelId/triggers', () =>
+    HttpResponse.json({ message: 'triggers updated' })
+  ),
+  http.get('http://localhost:8080/api/v1/settings/general', () =>
+    HttpResponse.json({ timezone: 'UTC' })
+  ),
+  http.put('http://localhost:8080/api/v1/settings/general', () =>
+    HttpResponse.json({ message: 'general settings updated' })
   ),
 ]

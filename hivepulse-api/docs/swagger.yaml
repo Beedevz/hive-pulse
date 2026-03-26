@@ -1,5 +1,33 @@
 basePath: /api/v1
 definitions:
+  domain.AssignmentTriggers:
+    properties:
+      cooldown_minutes:
+        description: 0 = disabled
+        type: integer
+      schedule:
+        $ref: '#/definitions/domain.ScheduleRule'
+    type: object
+  domain.GeneralSettings:
+    properties:
+      timezone:
+        description: IANA timezone, e.g. "Europe/Istanbul"
+        type: string
+    type: object
+  domain.ScheduleRule:
+    properties:
+      days:
+        description: e.g. ["mon","tue","wed","thu","fri"]
+        items:
+          type: string
+        type: array
+      end:
+        description: '"HH:MM" 24-hour'
+        type: string
+      start:
+        description: '"HH:MM" 24-hour'
+        type: string
+    type: object
   domain.StatsBucket:
     properties:
       avg_ping_ms:
@@ -501,6 +529,53 @@ paths:
       summary: Update monitor
       tags:
       - monitors
+  /monitors/{id}/channels/{channelId}/triggers:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Channel ID
+        in: path
+        name: channelId
+        required: true
+        type: string
+      - description: Trigger rules
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.AssignmentTriggers'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Update trigger rules for a monitor-channel assignment
+      tags:
+      - monitors
   /monitors/{id}/heartbeats:
     get:
       parameters:
@@ -661,6 +736,62 @@ paths:
       summary: Get public status page by slug
       tags:
       - status-pages
+  /settings/general:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GeneralSettings'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Get general settings
+      tags:
+      - settings
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: General settings
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.GeneralSettings'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Update general settings
+      tags:
+      - settings
   /settings/smtp:
     get:
       produces:

@@ -16,6 +16,7 @@ import { UserTable } from '../components/UserTable'
 import { ChannelCard } from '../components/ChannelCard'
 import { ChannelModal } from '../components/ChannelModal'
 import { TagManager } from '../components/TagManager'
+import { GeneralSettingsSection } from '../components/GeneralSettingsSection'
 import type { NotificationChannel, CreateChannelInput } from '../../domain/notification'
 
 function SMTPForm() {
@@ -227,9 +228,7 @@ export function SettingsPage() {
           </Typography>
 
           {section === 'general' && (
-            <Typography color="text.secondary" fontSize="0.875rem">
-              General settings — coming in a future slice.
-            </Typography>
+            <GeneralSettingsSection />
           )}
 
           {section === 'users' && me?.role === 'admin' && (

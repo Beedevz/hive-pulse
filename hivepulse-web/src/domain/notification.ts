@@ -30,3 +30,21 @@ export interface CreateChannelInput {
   enabled: boolean
   remind_interval_min: number
 }
+
+export interface ScheduleRule {
+  days: string[]  // "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun"
+  start: string   // "HH:MM"
+  end: string     // "HH:MM"
+}
+
+export interface AssignmentTriggers {
+  cooldown_minutes: number
+  schedule?: ScheduleRule
+}
+
+export interface MonitorChannelAssignment {
+  id: string
+  name: string
+  type: ChannelType
+  triggers: AssignmentTriggers
+}
