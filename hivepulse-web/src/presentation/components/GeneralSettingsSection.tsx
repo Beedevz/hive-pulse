@@ -13,7 +13,7 @@ const TIMEZONES = Intl.supportedValuesOf('timeZone')
 export function GeneralSettingsSection() {
   const { data: settings } = useGeneralSettings()
   const save = useSaveGeneralSettings()
-  const [timezone, setTimezone] = useState('UTC')
+  const [timezone, setTimezone] = useState('')
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
