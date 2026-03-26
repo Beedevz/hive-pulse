@@ -8,6 +8,7 @@ import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Checkbox from '@mui/material/Checkbox'
+import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
@@ -19,6 +20,7 @@ interface MonitorModalProps {
   onClose: () => void
   onSubmit: (payload: CreateMonitorPayload) => void
   initialValues?: Partial<CreateMonitorPayload> & { id?: string }
+  error?: string | null
 }
 
 function TagSection({ monitorId }: Readonly<{ monitorId: string }>) {
@@ -66,7 +68,7 @@ function TagSection({ monitorId }: Readonly<{ monitorId: string }>) {
   )
 }
 
-export const MonitorModal = ({ open, onClose, onSubmit, initialValues }: Readonly<MonitorModalProps>) => {
+export const MonitorModal = ({ open, onClose, onSubmit, initialValues, error }: Readonly<MonitorModalProps>) => {
   const [name, setName] = useState(initialValues?.name ?? '')
   const [checkType, setCheckType] = useState<CheckType>(initialValues?.check_type ?? 'http')
   const [interval, setInterval] = useState(initialValues?.interval ?? 60)
@@ -114,6 +116,7 @@ export const MonitorModal = ({ open, onClose, onSubmit, initialValues }: Readonl
       </DialogTitle>
       <form onSubmit={handleSubmit}>
         <DialogContent sx={{ pt: 1 }}>
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
           <TextField
             id="name"
             label="Name"

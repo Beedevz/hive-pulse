@@ -51,4 +51,5 @@ export interface Heartbeat {
   status: MonitorStatus
   ping_ms: number
   checked_at: string
+  error_msg?: string
 }

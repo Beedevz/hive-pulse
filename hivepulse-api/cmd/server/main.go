@@ -121,6 +121,7 @@ func main() {
 	r := gin.Default()
 	r.Use(middleware.CORS(cfg.CORSAllowedOrigins))
 
+	r.GET("/health", func(c *gin.Context) { c.Status(200) })
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	r.GET("/s/:slug", statusPageHandler.GetPublic)
 	r.GET("/api/v1/status-pages/public/:slug", statusPageHandler.GetPublic)
