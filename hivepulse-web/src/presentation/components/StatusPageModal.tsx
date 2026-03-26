@@ -45,6 +45,7 @@ export function StatusPageModal({ open, onClose, existing }: Readonly<Props>) {
 
   useEffect(() => {
     if (!slugEdited && title) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSlug(`${slugify(title)}-${randomSuffix()}`)
     }
   }, [title, slugEdited])

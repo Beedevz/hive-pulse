@@ -1,6 +1,6 @@
 import React from 'react'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { ThemeProvider } from '../../../shared/ThemeProvider'
@@ -11,7 +11,10 @@ vi.mock('../../../application/useAuth', async (orig) => {
   return { ...actual, useMe: vi.fn(() => ({ data: { email: 'admin@example.com', role: 'admin' } })) }
 })
 
+vi.mock('../../../application/useTags')
+
 import { useMe } from '../../../application/useAuth'
+import { useMonitorTags, useTags } from '../../../application/useTags'
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <ThemeProvider>
@@ -24,6 +27,11 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 )
 
 describe('MonitorDetailSection', () => {
+  beforeEach(() => {
+    vi.mocked(useMonitorTags).mockReturnValue({ data: [{ id: 'tag-1', name: 'Production', color: '#4ADE80', created_at: '' }], isPending: false } as unknown as ReturnType<typeof useMonitorTags>)
+    vi.mocked(useTags).mockReturnValue({ data: [], isPending: false } as unknown as ReturnType<typeof useTags>)
+  })
+
   it('renders monitor name from API', async () => {
     render(<MonitorDetailSection monitorId="monitor-1" />, { wrapper })
     await waitFor(() => expect(screen.getByText('Test API')).toBeInTheDocument())
@@ -57,5 +65,16 @@ describe('MonitorDetailSection', () => {
   it('shows loading state before data arrives', () => {
     render(<MonitorDetailSection monitorId="monitor-1" />, { wrapper })
     expect(document.querySelector('.MuiCircularProgress-root')).toBeInTheDocument()
+  })
+
+  it('renders assigned tag chips', async () => {
+    render(<MonitorDetailSection monitorId="monitor-1" />, { wrapper })
+    await waitFor(() => expect(screen.getByText('Production')).toBeInTheDocument())
+  })
+
+  it('hides Add Tag button for viewer role', () => {
+    vi.mocked(useMe).mockReturnValueOnce({ data: { email: 'v@test.com', role: 'viewer' } } as unknown as ReturnType<typeof useMe>)
+    render(<MonitorDetailSection monitorId="monitor-1" />, { wrapper })
+    expect(screen.queryByText(/\+ tag/i)).not.toBeInTheDocument()
   })
 })

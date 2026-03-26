@@ -14,6 +14,8 @@ import { useMonitor, useHeartbeats } from '../../application/useMonitors'
 import { useStats } from '../../application/useStats'
 import { useMe } from '../../application/useAuth'
 import { useMonitorChannels, useChannels, useAssignChannel, useUnassignChannel } from '../../application/useNotifications'
+import { useMonitorTags, useTags, useAssignTag, useUnassignTag } from '../../application/useTags'
+import Popover from '@mui/material/Popover'
 import { UptimeHeatmap } from './UptimeHeatmap'
 import { ResponseTimeChart } from './ResponseTimeChart'
 import type { StatsRange } from '../../domain/stats'
@@ -201,7 +203,13 @@ interface MonitorDetailSectionProps {
 
 export function MonitorDetailSection({ monitorId, onEdit, onDelete }: Readonly<MonitorDetailSectionProps>) {
   const [chartRange, setChartRange] = useState<'24h' | '7d'>('24h')
+  const [tagAnchor, setTagAnchor] = useState<null | HTMLElement>(null)
   const { data: me } = useMe()
+  const { data: monitorTags = [] } = useMonitorTags(monitorId)
+  const { data: allTags = [] } = useTags()
+  const assignTag = useAssignTag()
+  const unassignTag = useUnassignTag()
+  const canEditTags = me?.role === 'admin' || me?.role === 'editor'
 
   const { data: monitor, isLoading: monitorLoading, isError: monitorError } = useMonitor(monitorId)
   const { data: hbData } = useHeartbeats(monitorId)
@@ -240,6 +248,36 @@ export function MonitorDetailSection({ monitorId, onEdit, onDelete }: Readonly<M
           size="small"
           sx={{ fontSize: '0.6875rem', fontWeight: 700, height: 22 }}
         />
+        {monitorTags.map((t) => (
+          <Chip
+            key={t.id}
+            label={t.name}
+            size="small"
+            onDelete={canEditTags ? () => unassignTag.mutate({ monitorId, tagId: t.id }) : undefined}
+            sx={{ bgcolor: `${t.color}22`, color: t.color, fontSize: '0.625rem' }}
+          />
+        ))}
+        {canEditTags && (
+          <>
+            <Button size="small" sx={{ fontSize: '0.625rem', minWidth: 0, px: 0.75 }} onClick={(e) => setTagAnchor(e.currentTarget)}>
+              + Tag
+            </Button>
+            <Popover open={Boolean(tagAnchor)} anchorEl={tagAnchor} onClose={() => setTagAnchor(null)}>
+              <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 0.5, minWidth: 160 }}>
+                {allTags.filter((t) => !monitorTags.some((mt) => mt.id === t.id)).map((t) => (
+                  <Chip
+                    key={t.id}
+                    label={t.name}
+                    size="small"
+                    onClick={() => { assignTag.mutate({ monitorId, tagId: t.id }); setTagAnchor(null) }}
+                    sx={{ bgcolor: `${t.color}22`, color: t.color, cursor: 'pointer' }}
+                  />
+                ))}
+                {allTags.length === 0 && <Typography fontSize="0.75rem" color="text.secondary">No tags available.</Typography>}
+              </Box>
+            </Popover>
+          </>
+        )}
         {me?.role !== 'viewer' && (
           <Box sx={{ ml: 'auto', display: 'flex', gap: 1 }}>
             <Button

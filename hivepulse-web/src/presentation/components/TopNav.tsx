@@ -56,9 +56,10 @@ export function TopNav() {
       {/* Nav links */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
         {[
-          { to: '/dashboard', label: 'Monitors' },
-          { to: '/alerts',    label: 'Alerts' },
-          { to: '/settings',  label: 'Settings' },
+          { to: '/dashboard',     label: 'Monitors' },
+          { to: '/alerts',        label: 'Alerts' },
+          { to: '/status-pages',  label: 'Status' },
+          { to: '/settings',      label: 'Settings' },
         ].map(({ to, label }) => (
           <NavLink
             key={to}
