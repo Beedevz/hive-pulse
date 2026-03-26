@@ -1,0 +1,16 @@
+apiVersion: v2
+name: hivepulse
+description: Open-source uptime monitoring and status page platform
+type: application
+version: 0.1.0
+appVersion: "v0.1.0"
+home: https://github.com/Beedevz/hivepulse
+sources:
+  - https://github.com/Beedevz/hivepulse
+maintainers:
+  - name: Beedevz
+    url: https://github.com/Beedevz
+keywords:
+  - uptime
+  - monitoring
+  - status-page

@@ -1,0 +1,22 @@
+HivePulse has been deployed!
+
+  Chart version:  {{ .Chart.Version }}
+  App version:    {{ .Chart.AppVersion }}
+  Namespace:      {{ .Release.Namespace }}
+
+{{- if .Values.ingress.enabled }}
+  URL: http{{ if .Values.ingress.tls }}s{{ end }}://{{ (first .Values.ingress.hosts).host }}
+{{- else if eq .Values.service.type "NodePort" }}
+  export NODE_PORT=$(kubectl get svc {{ include "hivepulse.fullname" . }} -n {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}")
+  export NODE_IP=$(kubectl get nodes -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo "Visit http://$NODE_IP:$NODE_PORT"
+{{- else }}
+  kubectl port-forward svc/{{ include "hivepulse.fullname" . }} 8080:80 -n {{ .Release.Namespace }}
+  Then open http://localhost:8080
+{{- end }}
+
+{{- if .Values.postgresql.enabled }}
+
+  ⚠️  The bundled PostgreSQL is for development/testing.
+     For production, disable it and set env.databaseUrl to a managed PostgreSQL instance.
+{{- end }}

@@ -6,16 +6,16 @@ on:
       - "v*.*.*"
 
 env:
-  IMAGE: beedevztech/hive
+  IMAGE: beedevztech/hivepulse
 
 jobs:
   release:
     name: Build, Scan & Publish
     runs-on: ubuntu-latest
     permissions:
-      contents: write      # create GitHub Release
-      security-events: write  # upload Trivy SARIF
-      pull-requests: read  # git-cliff GitHub metadata
+      contents: write
+      security-events: write
+      pull-requests: read
 
     steps:
       - name: Checkout (full history for changelog)
@@ -31,12 +31,25 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version-file: config-api/go.mod
-          cache-dependency-path: config-api/go.sum
+          go-version-file: hivepulse-api/go.mod
+          cache-dependency-path: hivepulse-api/go.sum
 
       - name: Run Go tests
-        working-directory: config-api
+        working-directory: hivepulse-api
         run: go test -race ./...
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: hivepulse-web/package-lock.json
+
+      - name: Run frontend tests
+        working-directory: hivepulse-web
+        run: |
+          npm ci
+          npm run test -- --run
 
       # ── Changelog ─────────────────────────────────────────────────
       - name: Install git-cliff
@@ -48,13 +61,13 @@ jobs:
             | tar -xz -C /tmp
           find /tmp -name 'git-cliff' -type f | head -1 | xargs -I{} install -m755 {} /usr/local/bin/git-cliff
 
-      - name: Generate changelog
+      - name: Generate release notes
         id: changelog
         run: |
-          git-cliff --config cliff.toml --latest --strip header --output CHANGELOG.md
+          git-cliff --config cliff.toml --latest --strip header --output RELEASE_NOTES.md
           {
             echo 'content<<EOF'
-            cat CHANGELOG.md
+            cat RELEASE_NOTES.md
             echo EOF
           } >> "$GITHUB_OUTPUT"
         env:
@@ -62,7 +75,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       # ── Docker build ──────────────────────────────────────────────
-      - name: Set up QEMU (for multi-platform builds)
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
@@ -74,28 +87,27 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build image (local — for scanning)
+      - name: Build image locally (for scanning)
         uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
           load: true
-          build-args: VERSION=${{ steps.version.outputs.VERSION }}
           tags: ${{ env.IMAGE }}:${{ steps.version.outputs.VERSION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       # ── Security scan ─────────────────────────────────────────────
-      - name: Trivy — container vulnerability scan
+      - name: Trivy — vulnerability scan (gate)
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ env.IMAGE }}:${{ steps.version.outputs.VERSION }}
           format: table
           severity: CRITICAL,HIGH
-          exit-code: "1"          # fail pipeline on CRITICAL/HIGH CVEs
-          ignore-unfixed: true    # skip vulnerabilities with no fix yet
+          exit-code: "1"
+          ignore-unfixed: true
 
-      - name: Trivy — generate SARIF report
+      - name: Trivy — SARIF report
         uses: aquasecurity/trivy-action@master
         if: always()
         with:
@@ -103,32 +115,30 @@ jobs:
           format: sarif
           output: trivy-results.sarif
           severity: CRITICAL,HIGH
-          exit-code: "0"          # advisory only — gate is the table step above
+          exit-code: "0"
           ignore-unfixed: true
 
-      - name: Upload Trivy results to GitHub Security tab
+      - name: Upload Trivy SARIF to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4
         if: always()
-        continue-on-error: true   # requires public repo or GitHub Advanced Security
+        continue-on-error: true
         with:
           sarif_file: trivy-results.sarif
 
       # ── SBOM ──────────────────────────────────────────────────────
-      - name: Install syft
-        run: curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
-
       - name: Generate SBOM
-        run: syft ${{ env.IMAGE }}:${{ steps.version.outputs.VERSION }} -o spdx-json > sbom.spdx.json
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+          syft ${{ env.IMAGE }}:${{ steps.version.outputs.VERSION }} -o spdx-json > sbom.spdx.json
 
-      # ── Push to Docker Hub ────────────────────────────────────────
-      - name: Push to Docker Hub (multi-platform)
+      # ── Push to Docker Hub (multi-platform) ───────────────────────
+      - name: Push to Docker Hub
         uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
-          build-args: VERSION=${{ steps.version.outputs.VERSION }}
           tags: |
             ${{ env.IMAGE }}:${{ steps.version.outputs.VERSION }}
             ${{ env.IMAGE }}:latest
@@ -143,15 +153,26 @@ jobs:
 
             ---
 
-            **Docker Hub**
+            ## Docker
+
             ```bash
-            docker pull beedevztech/hive:${{ steps.version.outputs.VERSION }}
+            docker pull beedevztech/hivepulse:${{ steps.version.outputs.VERSION }}
             ```
 
-            **Update your server**
+            ## Docker Compose (self-hosted upgrade)
+
             ```bash
-            VERSION=${{ steps.version.outputs.VERSION }} \
-              docker compose -f docker-compose.prod.yml pull && \
-              docker compose -f docker-compose.prod.yml up -d
+            curl -O https://raw.githubusercontent.com/Beedevz/hivepulse/${{ steps.version.outputs.VERSION }}/docker-compose.yml
+            docker compose pull && docker compose up -d
             ```
-          files: sbom.spdx.json
+
+            ## Helm (Kubernetes)
+
+            ```bash
+            helm repo add hivepulse https://beedevz.github.io/hivepulse
+            helm repo update
+            helm upgrade --install hivepulse hivepulse/hivepulse --version ${{ steps.version.outputs.VERSION }}
+            ```
+          files: |
+            sbom.spdx.json
+            RELEASE_NOTES.md

@@ -1,0 +1,81 @@
+# -- Number of app replicas
+replicaCount: 1
+
+image:
+  repository: beedevztech/hivepulse
+  pullPolicy: IfNotPresent
+  # -- Overrides the image tag; defaults to the chart appVersion
+  tag: ""
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: hivepulse.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# -- Resource limits and requests
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# -- Extra environment variables passed to the app container
+# These complement the required vars in `env` below.
+extraEnv: []
+
+# -- Required environment variables (set all of these)
+env:
+  # Database connection URL
+  # Example: postgres://hivepulse:password@postgres:5432/hivepulse?sslmode=disable
+  databaseUrl: ""
+  jwtSecret: ""
+  jwtRefreshSecret: ""
+  encryptionKey: ""
+  corsOrigins: "*"
+  apiPort: "8080"
+  logLevel: "info"
+
+# -- If true, a Kubernetes Secret is created from env values above.
+# Set to false to manage the secret externally and reference it via existingSecret.
+createSecret: true
+existingSecret: ""
+
+# -- PostgreSQL subchart (bitnami/postgresql)
+# Disable if you provide an external database via env.databaseUrl
+postgresql:
+  enabled: true
+  auth:
+    database: hivepulse
+    username: hivepulse
+    # Override in production — do not use the default
+    password: "changeme"
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+
+# -- Node selector, tolerations, affinity
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# -- Pod annotations
+podAnnotations: {}
+
+# -- Security context for the pod
+podSecurityContext: {}
+
+# -- Security context for the container
+securityContext: {}
