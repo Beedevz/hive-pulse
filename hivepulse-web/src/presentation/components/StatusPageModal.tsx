@@ -28,7 +28,7 @@ interface Props {
   existing?: StatusPage
 }
 
-const PRESET_COLORS = ['#F5A623', '#4ADE80', '#6BA3F7', '#F87171', '#FBBF24', '#A78BFA']
+const PRESET_COLORS = ['#F5A623', '#4ADE80', '#6BA3F7', '#F87171', '#FBBF24', '#A78BFA', '#34D399', '#FB923C']
 
 export function StatusPageModal({ open, onClose, existing }: Readonly<Props>) {
   const { data: tags = [] } = useTags()
@@ -84,21 +84,41 @@ export function StatusPageModal({ open, onClose, existing }: Readonly<Props>) {
         <TextField label="Logo URL" value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} fullWidth size="small" placeholder="https://..." />
         <Box>
           <Typography fontSize="0.75rem" color="text.secondary" sx={{ mb: 0.75 }}>Accent Color</Typography>
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', alignItems: 'center' }}>
             {PRESET_COLORS.map((c) => (
               <Box
                 key={c}
                 onClick={() => setAccentColor(c)}
-                sx={{ width: 28, height: 28, borderRadius: '50%', bgcolor: c, cursor: 'pointer', border: accentColor === c ? '2px solid white' : '2px solid transparent', boxSizing: 'border-box' }}
+                sx={{
+                  width: 28, height: 28, borderRadius: '50%', bgcolor: c,
+                  cursor: 'pointer',
+                  border: accentColor === c ? '2px solid white' : '2px solid transparent',
+                  outline: accentColor === c ? `2px solid ${c}` : 'none',
+                  boxSizing: 'border-box',
+                  transition: 'transform 0.1s',
+                  '&:hover': { transform: 'scale(1.15)' },
+                }}
               />
             ))}
-            <TextField
-              value={accentColor}
-              onChange={(e) => setAccentColor(e.target.value)}
-              size="small"
-              sx={{ width: 100 }}
-              inputProps={{ style: { fontFamily: 'monospace' } }}
-            />
+            <Box
+              component="label"
+              sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+              title="Custom color"
+            >
+              <Box
+                component="input"
+                type="color"
+                value={accentColor}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAccentColor(e.target.value)}
+                sx={{
+                  width: 28, height: 28, borderRadius: '50%',
+                  border: 'none', padding: 0, cursor: 'pointer',
+                  bgcolor: 'transparent',
+                  '&::-webkit-color-swatch-wrapper': { padding: 0 },
+                  '&::-webkit-color-swatch': { borderRadius: '50%', border: '2px solid', borderColor: 'divider' },
+                }}
+              />
+            </Box>
           </Box>
         </Box>
         {tags.length > 0 && (

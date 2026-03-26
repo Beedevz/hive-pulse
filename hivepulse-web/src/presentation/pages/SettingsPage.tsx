@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import Tab from '@mui/material/Tab'
-import Tabs from '@mui/material/Tabs'
 import TextField from '@mui/material/TextField'
 import Divider from '@mui/material/Divider'
 import Alert from '@mui/material/Alert'
@@ -17,6 +15,7 @@ import type { SMTPSettings } from '../../application/useNotifications'
 import { UserTable } from '../components/UserTable'
 import { ChannelCard } from '../components/ChannelCard'
 import { ChannelModal } from '../components/ChannelModal'
+import { TagManager } from '../components/TagManager'
 import type { NotificationChannel, CreateChannelInput } from '../../domain/notification'
 
 function SMTPForm() {
@@ -105,7 +104,7 @@ function SMTPForm() {
   )
 }
 
-function NotificationsTab() {
+function NotificationsSection() {
   const { data: channels = [] } = useChannels()
   const createChannel = useCreateChannel()
   const updateChannel = useUpdateChannel()
@@ -163,47 +162,77 @@ function NotificationsTab() {
   )
 }
 
+type SectionKey = 'general' | 'users' | 'notifications' | 'tags'
+
 export function SettingsPage() {
-  const [tab, setTab] = useState(0)
+  const [section, setSection] = useState<SectionKey>('general')
   const { data: me } = useMe()
   const { data: usersData } = useUsers(1, 50)
   const updateRoleMutation = useUpdateUserRole()
   const deleteUserMutation = useDeleteUser()
 
+  const navItems: { key: SectionKey; label: string }[] = [
+    { key: 'general', label: 'General' },
+    ...(me?.role === 'admin' ? [
+      { key: 'users' as SectionKey, label: 'Users' },
+      { key: 'notifications' as SectionKey, label: 'Notifications' },
+      { key: 'tags' as SectionKey, label: 'Tags' },
+    ] : []),
+  ]
+
+  const currentLabel = navItems.find((i) => i.key === section)?.label ?? ''
+
   return (
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <Box sx={{ px: 4, py: 2.5, borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="h6" fontWeight={600} color="text.primary" fontSize="1.0625rem">
-            Settings
-          </Typography>
-          <Typography variant="body2" color="text.secondary" fontSize="0.8125rem">
-            Manage users and workspace settings
-          </Typography>
+      <Box sx={{ px: 4, py: 2.5, borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Typography variant="h6" fontWeight={600} color="text.primary" fontSize="1.0625rem">
+          Settings
+        </Typography>
+        <Typography variant="body2" color="text.secondary" fontSize="0.8125rem">
+          Manage users and workspace settings
+        </Typography>
+      </Box>
+
+      <Box sx={{ display: 'flex', flex: 1, minHeight: 0 }}>
+        {/* Left sidebar */}
+        <Box sx={{ width: 220, flexShrink: 0, borderRight: '1px solid', borderColor: 'divider', pt: 1 }}>
+          <Box component="nav">
+            {navItems.map((item) => (
+              <Box
+                key={item.key}
+                onClick={() => setSection(item.key)}
+                sx={{
+                  px: 2.5, py: 1.25,
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  fontWeight: section === item.key ? 600 : 400,
+                  color: section === item.key ? 'primary.main' : 'text.primary',
+                  bgcolor: section === item.key ? 'action.selected' : 'transparent',
+                  borderLeft: section === item.key ? '3px solid' : '3px solid transparent',
+                  borderColor: section === item.key ? 'primary.main' : 'transparent',
+                  '&:hover': { bgcolor: 'action.hover' },
+                  transition: 'all 0.15s',
+                }}
+              >
+                {item.label}
+              </Box>
+            ))}
+          </Box>
         </Box>
 
-        <Box sx={{ flex: 1, px: 4, py: 3 }}>
-          <Tabs
-            value={tab}
-            onChange={(_, v) => setTab(v)}
-            sx={{
-              mb: 3,
-              borderBottom: '1px solid',
-              borderColor: 'divider',
-              '& .MuiTab-root': { textTransform: 'none', fontSize: '0.875rem', minHeight: 40, py: 1 },
-            }}
-          >
-            <Tab label="General" />
-            {me?.role === 'admin' && <Tab label="Users" />}
-            {me?.role === 'admin' && <Tab label="Notifications" />}
-          </Tabs>
+        {/* Right content */}
+        <Box sx={{ flex: 1, p: 4, maxWidth: 680 }}>
+          <Typography variant="h6" fontWeight={700} fontFamily="'Bricolage Grotesque', sans-serif" mb={3}>
+            {currentLabel}
+          </Typography>
 
-          {tab === 0 && (
+          {section === 'general' && (
             <Typography color="text.secondary" fontSize="0.875rem">
               General settings — coming in a future slice.
             </Typography>
           )}
 
-          {tab === 1 && me?.role === 'admin' && (
+          {section === 'users' && me?.role === 'admin' && (
             <UserTable
               users={usersData?.data ?? []}
               currentUserId={me.id}
@@ -212,10 +241,15 @@ export function SettingsPage() {
             />
           )}
 
-          {tab === 2 && me?.role === 'admin' && (
-            <NotificationsTab />
+          {section === 'notifications' && me?.role === 'admin' && (
+            <NotificationsSection />
+          )}
+
+          {section === 'tags' && me?.role === 'admin' && (
+            <TagManager />
           )}
         </Box>
+      </Box>
     </Box>
   )
 }

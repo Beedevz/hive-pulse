@@ -6,7 +6,6 @@ import CircularProgress from '@mui/material/CircularProgress'
 import { useStatusPages } from '../../application/useStatusPages'
 import { StatusPageCard } from '../components/StatusPageCard'
 import { StatusPageModal } from '../components/StatusPageModal'
-import { TagManager } from '../components/TagManager'
 import type { StatusPage } from '../../domain/statusPage'
 
 export function StatusPagesPage() {
@@ -29,8 +28,6 @@ export function StatusPagesPage() {
           + New Page
         </Button>
       </Box>
-
-      <TagManager />
 
       {isPending ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', pt: 4 }}><CircularProgress /></Box>
