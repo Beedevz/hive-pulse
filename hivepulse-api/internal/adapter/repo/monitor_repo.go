@@ -26,6 +26,7 @@ type monitorModel struct {
 	RequestHeaders  string
 	RequestBody     string
 	FollowRedirects bool
+	SkipTLSVerify   bool
 	Host            string
 	Port            int
 	PingHost        string
@@ -97,6 +98,7 @@ func (r *MonitorRepo) Update(ctx context.Context, m *domain.Monitor) error {
 		"request_headers":  m.RequestHeaders,
 		"request_body":     m.RequestBody,
 		"follow_redirects": m.FollowRedirects,
+		"skip_tls_verify":  m.SkipTLSVerify,
 		"host":             m.Host,
 		"port":             m.Port,
 		"ping_host":        m.PingHost,
@@ -144,6 +146,7 @@ func toMonitorModel(m *domain.Monitor) *monitorModel {
 		RequestHeaders:  m.RequestHeaders,
 		RequestBody:     m.RequestBody,
 		FollowRedirects: m.FollowRedirects,
+		SkipTLSVerify:   m.SkipTLSVerify,
 		Host:            m.Host,
 		Port:            m.Port,
 		PingHost:        m.PingHost,
@@ -184,6 +187,7 @@ func toDomainMonitor(m *monitorModel) *domain.Monitor {
 		RequestHeaders:  m.RequestHeaders,
 		RequestBody:     m.RequestBody,
 		FollowRedirects: m.FollowRedirects,
+		SkipTLSVerify:   m.SkipTLSVerify,
 		Host:            m.Host,
 		Port:            m.Port,
 		PingHost:        m.PingHost,

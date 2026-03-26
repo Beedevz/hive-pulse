@@ -96,6 +96,7 @@ export function MonitorsPage() {
         onClose={() => setModalOpen(false)}
         onSubmit={handleModalSubmit}
         initialValues={editingMonitor}
+        error={(updateMonitor.error ?? createMonitor.error)?.message ?? null}
       />
     </Box>
   )

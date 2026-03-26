@@ -1678,6 +1678,9 @@ const docTemplate = `{
                 "retry_interval": {
                     "type": "integer"
                 },
+                "skip_tls_verify": {
+                    "type": "boolean"
+                },
                 "timeout": {
                     "type": "integer"
                 },

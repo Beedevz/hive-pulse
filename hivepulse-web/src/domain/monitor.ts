@@ -16,6 +16,7 @@ export interface Monitor {
   request_headers?: string
   request_body?: string
   follow_redirects?: boolean
+  skip_tls_verify?: boolean
   host?: string
   port?: number
   ping_host?: string
@@ -50,4 +51,5 @@ export interface Heartbeat {
   status: MonitorStatus
   ping_ms: number
   checked_at: string
+  error_msg?: string
 }

@@ -55,6 +55,7 @@ type monitorResponse struct {
 	Method          string  `json:"method,omitempty"`
 	ExpectedStatus  int     `json:"expected_status,omitempty"`
 	FollowRedirects bool    `json:"follow_redirects,omitempty"`
+	SkipTLSVerify   bool    `json:"skip_tls_verify,omitempty"`
 	Host            string  `json:"host,omitempty"`
 	Port            int     `json:"port,omitempty"`
 	PingHost        string  `json:"ping_host,omitempty"`
@@ -83,7 +84,7 @@ func toMonitorResponse(m *domain.Monitor, lastStatus string, uptime24h float64) 
 	return monitorResponse{
 		ID: m.ID, Name: m.Name, CheckType: string(m.CheckType),
 		Interval: m.Interval, Timeout: m.Timeout, Retries: m.Retries, RetryInterval: m.RetryInterval, Enabled: m.Enabled,
-		URL: m.URL, Method: m.Method, ExpectedStatus: m.ExpectedStatus, FollowRedirects: m.FollowRedirects,
+		URL: m.URL, Method: m.Method, ExpectedStatus: m.ExpectedStatus, FollowRedirects: m.FollowRedirects, SkipTLSVerify: m.SkipTLSVerify,
 		Host: m.Host, Port: m.Port,
 		PingHost: m.PingHost, PacketCount: m.PacketCount,
 		DNSHost: m.DNSHost, RecordType: m.RecordType, DNSServer: m.DNSServer,
@@ -152,6 +153,7 @@ type monitorWriteRequest struct {
 	RequestHeaders  string `json:"request_headers"`
 	RequestBody     string `json:"request_body"`
 	FollowRedirects *bool  `json:"follow_redirects"`
+	SkipTLSVerify bool   `json:"skip_tls_verify"`
 	Host          string `json:"host"`
 	Port          int    `json:"port"`
 	PingHost      string `json:"ping_host"`
@@ -175,7 +177,7 @@ func toMonitorRequest(req monitorWriteRequest) usecase.MonitorRequest {
 		Name: req.Name, CheckType: req.CheckType, Interval: req.Interval,
 		Timeout: req.Timeout, Retries: req.Retries, RetryInterval: req.RetryInterval,
 		Enabled: enabled, URL: req.URL, Method: req.Method, ExpectedStatus: req.ExpectedStatus,
-		RequestHeaders: req.RequestHeaders, RequestBody: req.RequestBody, FollowRedirects: followRedirects,
+		RequestHeaders: req.RequestHeaders, RequestBody: req.RequestBody, FollowRedirects: followRedirects, SkipTLSVerify: req.SkipTLSVerify,
 		Host: req.Host, Port: req.Port, PingHost: req.PingHost, PacketCount: req.PacketCount,
 		DNSHost: req.DNSHost, RecordType: req.RecordType, ExpectedValue: req.ExpectedValue, DNSServer: req.DNSServer,
 	}
@@ -276,10 +278,11 @@ func (h *MonitorHandler) Heartbeats(c *gin.Context) {
 		Status    string `json:"status"`
 		PingMS    int    `json:"ping_ms"`
 		CheckedAt string `json:"checked_at"`
+		ErrorMsg  string `json:"error_msg,omitempty"`
 	}
 	resp := make([]hbResp, len(heartbeats))
 	for i, hb := range heartbeats {
-		resp[i] = hbResp{Status: hb.Status, PingMS: hb.PingMS, CheckedAt: hb.CheckedAt.Format(time.RFC3339)}
+		resp[i] = hbResp{Status: hb.Status, PingMS: hb.PingMS, CheckedAt: hb.CheckedAt.Format(time.RFC3339), ErrorMsg: hb.ErrorMsg}
 	}
 	c.JSON(http.StatusOK, gin.H{"data": resp})
 }

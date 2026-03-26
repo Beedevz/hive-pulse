@@ -227,7 +227,9 @@ export function MonitorDetailSection({ monitorId, onEdit, onDelete }: Readonly<M
 
   const { data: monitor, isLoading: monitorLoading, isError: monitorError } = useMonitor(monitorId)
   const { data: hbData } = useHeartbeats(monitorId)
-  const currentPing = hbData?.data?.[0]?.ping_ms ?? null
+  const lastHeartbeat = hbData?.data?.[0]
+  const currentPing = lastHeartbeat?.ping_ms ?? null
+  const lastErrorMsg = lastHeartbeat?.status === 'down' ? (lastHeartbeat.error_msg ?? null) : null
   const { data: stats24h } = useStats(monitorId, '24h')
   const { data: stats30d } = useStats(monitorId, '30d')
   const { data: heatmapStats, isLoading: heatmapLoading, isError: heatmapError } = useStats(monitorId, '90d')
@@ -316,6 +318,13 @@ export function MonitorDetailSection({ monitorId, onEdit, onDelete }: Readonly<M
           </Box>
         )}
       </Box>
+
+      {/* Error banner */}
+      {lastErrorMsg && (
+        <Alert severity="error" sx={{ borderRadius: 0, fontSize: '0.8125rem' }}>
+          {lastErrorMsg}
+        </Alert>
+      )}
 
       {/* Content */}
       <Box sx={{ flex: 1, px: 4, py: 3 }}>

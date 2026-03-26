@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"time"
@@ -19,8 +20,12 @@ func (c *HTTPChecker) Check(ctx context.Context, m *domain.Monitor) (*domain.Hea
 		CheckedAt: time.Now(),
 	}
 
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: m.SkipTLSVerify}, //nolint:gosec
+	}
 	client := &http.Client{
-		Timeout: time.Duration(m.Timeout) * time.Second,
+		Timeout:   time.Duration(m.Timeout) * time.Second,
+		Transport: transport,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			if !m.FollowRedirects {
 				return http.ErrUseLastResponse

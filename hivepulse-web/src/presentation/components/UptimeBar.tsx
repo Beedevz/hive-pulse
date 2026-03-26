@@ -24,8 +24,8 @@ export function UptimeBar({ blocks }: Readonly<UptimeBarProps>) {
       style={{
         display: 'flex',
         gap: 1.5,
-        alignItems: 'flex-end',
-        height: 20,
+        alignItems: 'stretch',
+        height: '100%',
         width: '100%',
       }}
     >
@@ -35,10 +35,9 @@ export function UptimeBar({ blocks }: Readonly<UptimeBarProps>) {
           title={status}
           style={{
             flex: 1,
-            height: status === 'up' ? 20 : 14,
+            height: '100%',
             backgroundColor: colorMap[status],
             borderRadius: 1.5,
-            // UP blocks are muted via opacity (matches mockup: opacity:.4 for up, 1 for others)
             opacity: status === 'up' ? 0.4 : 1,
           }}
         />

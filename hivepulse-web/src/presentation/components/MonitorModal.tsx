@@ -8,6 +8,7 @@ import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Checkbox from '@mui/material/Checkbox'
+import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
@@ -19,6 +20,7 @@ interface MonitorModalProps {
   onClose: () => void
   onSubmit: (payload: CreateMonitorPayload) => void
   initialValues?: Partial<CreateMonitorPayload> & { id?: string }
+  error?: string | null
 }
 
 function TagSection({ monitorId }: Readonly<{ monitorId: string }>) {
@@ -66,7 +68,7 @@ function TagSection({ monitorId }: Readonly<{ monitorId: string }>) {
   )
 }
 
-export const MonitorModal = ({ open, onClose, onSubmit, initialValues }: Readonly<MonitorModalProps>) => {
+export const MonitorModal = ({ open, onClose, onSubmit, initialValues, error }: Readonly<MonitorModalProps>) => {
   const [name, setName] = useState(initialValues?.name ?? '')
   const [checkType, setCheckType] = useState<CheckType>(initialValues?.check_type ?? 'http')
   const [interval, setInterval] = useState(initialValues?.interval ?? 60)
@@ -78,6 +80,7 @@ export const MonitorModal = ({ open, onClose, onSubmit, initialValues }: Readonl
   const [method, setMethod] = useState(initialValues?.method ?? 'GET')
   const [expectedStatus, setExpectedStatus] = useState(initialValues?.expected_status ?? 200)
   const [followRedirects, setFollowRedirects] = useState(initialValues?.follow_redirects ?? true)
+  const [skipTLSVerify, setSkipTLSVerify] = useState(initialValues?.skip_tls_verify ?? false)
   const [host, setHost] = useState(initialValues?.host ?? '')
   const [port, setPort] = useState(initialValues?.port ?? 80)
   const [pingHost, setPingHost] = useState(initialValues?.ping_host ?? '')
@@ -93,7 +96,7 @@ export const MonitorModal = ({ open, onClose, onSubmit, initialValues }: Readonl
     const base = { name, check_type: checkType, interval, timeout, retries, retry_interval: retryInterval, enabled }
     let payload: CreateMonitorPayload
     if (checkType === 'http') {
-      payload = { ...base, url, method, expected_status: expectedStatus, follow_redirects: followRedirects }
+      payload = { ...base, url, method, expected_status: expectedStatus, follow_redirects: followRedirects, skip_tls_verify: skipTLSVerify }
     } else if (checkType === 'tcp') {
       payload = { ...base, host, port }
     } else if (checkType === 'ping') {
@@ -113,6 +116,7 @@ export const MonitorModal = ({ open, onClose, onSubmit, initialValues }: Readonl
       </DialogTitle>
       <form onSubmit={handleSubmit}>
         <DialogContent sx={{ pt: 1 }}>
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
           <TextField
             id="name"
             label="Name"
@@ -156,6 +160,11 @@ export const MonitorModal = ({ open, onClose, onSubmit, initialValues }: Readonl
               <FormControlLabel
                 control={<Checkbox checked={followRedirects} onChange={(e) => setFollowRedirects(e.target.checked)} size="small" />}
                 label="Follow Redirects"
+                sx={{ mb: 0.5, '& .MuiFormControlLabel-label': { fontSize: '0.875rem' } }}
+              />
+              <FormControlLabel
+                control={<Checkbox checked={skipTLSVerify} onChange={(e) => setSkipTLSVerify(e.target.checked)} size="small" />}
+                label="Skip TLS Verification (for self-signed certificates)"
                 sx={{ mb: 1, '& .MuiFormControlLabel-label': { fontSize: '0.875rem' } }}
               />
             </>

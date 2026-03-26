@@ -1,23 +1,13 @@
 version: "3.9"
 
 services:
-  web:
+  app:
     build:
-      context: ./hivepulse-web
-      dockerfile: Dockerfile
-    ports:
-      - "8091:80"
-    depends_on:
-      - api
-    restart: unless-stopped
-
-  api:
-    build:
-      context: ./hivepulse-api
+      context: .
       dockerfile: Dockerfile
     env_file: .env
     ports:
-      - "8081:8080"
+      - "8092:80"
     depends_on:
       postgres:
         condition: service_healthy
