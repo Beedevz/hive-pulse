@@ -2,6 +2,27 @@
 
 All notable changes to HivePulse are documented here.
 
+## [v1.0.0] — 2026-03-26
+
+### 🚀 New Features
+
+- Add per-assignment cooldown rules: skip notification if last sent was within N minutes ([`854bb70`](https://github.com/Beedevz/hivepulse/commit/854bb70))
+- Add per-assignment schedule rules: restrict notifications to configured days and HH:MM–HH:MM time window ([`854bb70`](https://github.com/Beedevz/hivepulse/commit/854bb70))
+- Add global timezone setting in Settings > General (stored in app_settings, used for schedule evaluation) ([`854bb70`](https://github.com/Beedevz/hivepulse/commit/854bb70))
+- Add `AssignmentTriggerModal`: chip click on assigned channel opens cooldown + schedule config dialog ([`854bb70`](https://github.com/Beedevz/hivepulse/commit/854bb70))
+- Add active trigger indicator (gold outline) on channel chips with configured rules ([`854bb70`](https://github.com/Beedevz/hivepulse/commit/854bb70))
+- Add `GeneralSettingsSection` with timezone dropdown (IANA tz list via `Intl.supportedValuesOf`) ([`854bb70`](https://github.com/Beedevz/hivepulse/commit/854bb70))
+- Add General tab to SettingsPage ([`854bb70`](https://github.com/Beedevz/hivepulse/commit/854bb70))
+- Add `PUT /api/v1/monitors/:id/channels/:channelId/triggers` endpoint ([`854bb70`](https://github.com/Beedevz/hivepulse/commit/854bb70))
+- Add `GET /PUT /api/v1/settings/general` endpoints ([`854bb70`](https://github.com/Beedevz/hivepulse/commit/854bb70))
+
+### 🛡️ Reliability
+
+- Trigger checks fail open: invalid timezone, DB errors, and parse errors all proceed to send ([`854bb70`](https://github.com/Beedevz/hivepulse/commit/854bb70))
+- `IsWithinSchedule` exported and covered by 7 unit tests + 6 integration-level notification tests ([`854bb70`](https://github.com/Beedevz/hivepulse/commit/854bb70))
+
+---
+
 ## [v0.9.0] — 2026-03-26
 
 ### 🚀 New Features
