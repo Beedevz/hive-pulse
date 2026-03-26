@@ -15,10 +15,10 @@ COPY hivepulse-web/ .
 RUN npm run build
 
 # ── Stage 3: Final image (nginx + Go binary) ─────────────────────────────────
-FROM nginx:alpine
+FROM nginx:1.27-alpine
 
-# Install ca-certificates for HTTPS checks in the Go server
-RUN apk add --no-cache ca-certificates
+# Upgrade all packages to pick up latest security patches, then install ca-certificates
+RUN apk upgrade --no-cache && apk add --no-cache ca-certificates
 
 # Go API binary + migrations
 COPY --from=api-builder /app/server /app/server

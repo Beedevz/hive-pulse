@@ -38,10 +38,12 @@ jobs:
       - name: Ensure gh-pages branch exists
         run: |
           if ! git ls-remote --exit-code --heads origin gh-pages; then
+            git stash
             git switch --orphan gh-pages
             git commit --allow-empty -m "chore: initialize gh-pages for Helm chart repo"
             git push origin gh-pages
             git switch -
+            git stash pop
           fi
 
       # chart-releaser packages helm/ and publishes to gh-pages.
