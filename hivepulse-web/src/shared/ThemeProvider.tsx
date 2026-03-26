@@ -3,6 +3,8 @@ import { themes, type Theme, type ThemeName } from './theme'
 
 interface ThemeContextValue { theme: Theme; name: ThemeName; toggle: () => void }
 
+const CYCLE: ThemeName[] = ['dark', 'void', 'light']
+
 // eslint-disable-next-line react-refresh/only-export-components
 export const ThemeContext = createContext<ThemeContextValue>(null!)
 
@@ -15,7 +17,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     }
   })
   const toggle = () => setName((n) => {
-    const next = n === 'dark' ? 'light' : 'dark'
+    const next = CYCLE[(CYCLE.indexOf(n) + 1) % CYCLE.length]
     try { localStorage.setItem('theme', next) } catch { /* ignore in restricted environments */ }
     return next
   })

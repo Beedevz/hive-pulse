@@ -153,6 +153,104 @@ export const darkTheme = createTheme({
   },
 })
 
+// ─── void dark theme (Beedevz design system) ──────────────────────────────────
+
+export const voidDarkTheme = createTheme({
+  palette: {
+    mode: 'dark' as const,
+    primary:  { main: colors.voidAccent, dark: colors.voidAccentDim, light: colors.voidAccentLight },
+    error:    { main: colors.down },
+    success:  { main: '#34D399' },
+    warning:  { main: colors.slow },
+    info:     { main: colors.blue },
+    background: {
+      default: colors.voidBg,
+      paper:   colors.voidPaper,
+    },
+    text: {
+      primary:   colors.voidTextPrimary,
+      secondary: colors.voidTextSecondary,
+    },
+    divider: colors.voidBorder,
+  },
+  typography: {
+    fontFamily: '"IBM Plex Mono", monospace',
+    fontSize: 14,
+    h1: { fontFamily: '"Bricolage Grotesque", sans-serif' },
+    h2: { fontFamily: '"Bricolage Grotesque", sans-serif' },
+    h3: { fontFamily: '"Bricolage Grotesque", sans-serif' },
+    h4: { fontFamily: '"Bricolage Grotesque", sans-serif' },
+    h5: { fontFamily: '"Bricolage Grotesque", sans-serif' },
+    h6: { fontFamily: '"Bricolage Grotesque", sans-serif' },
+  },
+  shape: { borderRadius: 8 },
+  components: {
+    ...sharedComponents,
+    MuiCssBaseline: {
+      styleOverrides: {
+        ...cssBaselineOverrides,
+        '#root': {
+          minHeight: '100vh',
+          backgroundRepeat: 'repeat',
+          backgroundAttachment: 'fixed',
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundImage: 'none',
+          boxShadow: '0 2px 24px rgba(0,0,0,0.60)',
+        },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          backgroundColor: colors.voidInput,
+          '& .MuiOutlinedInput-notchedOutline': { borderColor: colors.voidBorder },
+          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: colors.voidBorderHover },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: colors.voidAccent },
+        },
+        input: {
+          fontSize: '0.875rem',
+          '&::placeholder': { color: colors.voidTextTertiary, opacity: 1 },
+        },
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: {
+          fontSize: '0.875rem',
+          color: colors.voidTextSecondary,
+          '&.Mui-focused': { color: colors.voidAccent },
+        },
+      },
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: colors.voidPaper,
+          backgroundImage: 'none',
+          border: `1px solid ${colors.voidBorderHover}`,
+        },
+      },
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        root: { borderColor: colors.voidBorder, fontSize: '0.875rem' },
+        head: {
+          color: colors.voidTextTertiary,
+          fontWeight: 600,
+          fontSize: '0.75rem',
+          textTransform: 'uppercase' as const,
+          letterSpacing: '0.05em',
+        },
+      },
+    },
+  },
+})
+
 // ─── light theme ──────────────────────────────────────────────────────────────
 
 export const lightTheme = createTheme({

@@ -48,4 +48,25 @@ export const colors = {
   lightTextPrimary:   '#14170a',  // TH.tx
   lightTextSecondary: '#65604c',  // TH.t2
   lightTextTertiary:  '#9e9882',  // TH.t3
+
+  // ── Void Dark surfaces (Beedevz design system) ────────────────────────────
+  voidBg:          '#0A0A0F',
+  voidPaper:       '#16161F',
+  voidSidebar:     '#111118',
+  voidHeader:      '#111118',
+  voidBorder:      'rgba(255,255,255,0.06)',
+  voidBorderHover: 'rgba(240,165,0,0.25)',
+  voidInput:       '#1C1C28',
+  voidSurface2:    '#1C1C28',
+
+  // ── Void Dark accent (Beedevz amber — very close to HivePulse gold) ───────
+  voidAccent:      '#F0A500',
+  voidAccentLight: '#FFC233',
+  voidAccentDim:   '#A07000',
+  voidAccentGlow:  'rgba(240,165,0,0.15)',
+
+  // ── Void Dark text ────────────────────────────────────────────────────────
+  voidTextPrimary:   '#E8E6E1',
+  voidTextSecondary: '#8A8690',
+  voidTextTertiary:  '#5A5660',
 } as const
