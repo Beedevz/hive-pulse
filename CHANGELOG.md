@@ -2,6 +2,32 @@
 
 All notable changes to HivePulse are documented here.
 
+## [v0.9.0] — 2026-03-26
+
+### 🚀 New Features
+
+- Add Tag domain, repo, usecase, and handler; assign/unassign tags to monitors ([`133f098`](https://github.com/Beedevz/hivepulse/commit/133f098))
+- Add StatusPage domain, repo, usecase, and handler with full CRUD ([`8c67b40`](https://github.com/Beedevz/hivepulse/commit/8c67b40))
+- Add public status page endpoint `/api/v1/status-pages/public/:slug` (no auth) ([`a09e5ed`](https://github.com/Beedevz/hivepulse/commit/a09e5ed))
+- Add StatusPagesPage, StatusPageModal, StatusPageCard components ([`035b928`](https://github.com/Beedevz/hivepulse/commit/035b928))
+- Add PublicStatusPage with HivePulse brand redesign — animated HexIcon glow, HoneycombBg SVG, PulseDot, incident timeline ([`1b9910f`](https://github.com/Beedevz/hivepulse/commit/1b9910f))
+- Add HoneycombBg shared component with mathematically correct pointy-top hexagons ([`1b9910f`](https://github.com/Beedevz/hivepulse/commit/1b9910f))
+- Add tag management in MonitorModal edit mode (assign/unassign) ([`1b9910f`](https://github.com/Beedevz/hivepulse/commit/1b9910f))
+- Add Tag manager to Settings sidebar with color picker ([`578a1d7`](https://github.com/Beedevz/hivepulse/commit/578a1d7))
+- Add dark/light theme toggle to TopNav ([`1b9910f`](https://github.com/Beedevz/hivepulse/commit/1b9910f))
+- Apply HoneycombBg and glass card effect (backdrop-filter blur) to dashboard ([`1b9910f`](https://github.com/Beedevz/hivepulse/commit/1b9910f))
+
+### 🐛 Bug Fixes
+
+- Fix StatusPageUsecase.List not populating TagIDs (edit modal showed tags as unselected) ([`1b9910f`](https://github.com/Beedevz/hivepulse/commit/1b9910f))
+- Fix StatusPage domain structs missing JSON tags (API returned capitalized field names) ([`1b9910f`](https://github.com/Beedevz/hivepulse/commit/1b9910f))
+- Fix public status page returning raw JSON — remove nginx `/s/` proxy, serve via React Router ([`1b9910f`](https://github.com/Beedevz/hivepulse/commit/1b9910f))
+- Fix preview/view links using hardcoded `localhost:5173` — use `window.location.origin` ([`1b9910f`](https://github.com/Beedevz/hivepulse/commit/1b9910f))
+- Fix ResponseTimeChart tooltip using hardcoded dark colors — now theme-aware ([`1b9910f`](https://github.com/Beedevz/hivepulse/commit/1b9910f))
+- Fix LeftPanel, StatsBar, MonitorDetailSection hardcoded dark colors breaking light theme ([`1b9910f`](https://github.com/Beedevz/hivepulse/commit/1b9910f))
+- Replace `math/rand` with `crypto/rand` in slug generator (gosec G404) ([`d275ac0`](https://github.com/Beedevz/hivepulse/commit/d275ac0))
+- Resolve XSS CodeQL alert in StatusPageModal preview link ([`7881702`](https://github.com/Beedevz/hivepulse/commit/7881702))
+
 ## [v0.8.0] — 2026-03-25
 
 ### 🚀 New Features
