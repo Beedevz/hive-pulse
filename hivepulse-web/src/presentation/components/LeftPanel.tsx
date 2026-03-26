@@ -4,6 +4,7 @@ import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import { colors } from '../../shared/colors'
 import { useMonitors } from '../../application/useMonitors'
+import { useTags, useMonitorTagsMap } from '../../application/useTags'
 import { MonitorSearch } from './MonitorSearch'
 import { MonitorListItem } from './MonitorListItem'
 import type { Monitor } from '../../domain/monitor'
@@ -26,10 +27,17 @@ interface LeftPanelProps {
 
 export function LeftPanel({ selectedMonitorId, onAddClick }: Readonly<LeftPanelProps>) {
   const [searchTerm, setSearchTerm] = useState('')
+  const [activeTagId, setActiveTagId] = useState<string | null>(null)
   const selectedItemRef = useRef<HTMLDivElement>(null)
   const { data: monitorsData } = useMonitors(1, 1000)
+  const { data: tags = [] } = useTags()
   const monitors = monitorsData?.data ?? []
-  const filtered = monitors.filter((m) => matchesSearch(m, searchTerm))
+  const monitorIds = monitors.map((m) => m.id)
+  const tagMap = useMonitorTagsMap(activeTagId ? monitorIds : [])
+
+  const filtered = monitors
+    .filter((m) => matchesSearch(m, searchTerm))
+    .filter((m) => !activeTagId || (tagMap[m.id] ?? []).some((t) => t.id === activeTagId))
 
   useEffect(() => {
     selectedItemRef.current?.scrollIntoView({ behavior: 'instant', block: 'nearest' })
@@ -103,6 +111,48 @@ export function LeftPanel({ selectedMonitorId, onAddClick }: Readonly<LeftPanelP
       <Box sx={{ px: 1.5, py: 1, borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0 }}>
         <MonitorSearch onSearch={setSearchTerm} />
       </Box>
+
+      {/* Tag filters */}
+      {tags.length > 0 && (
+        <Box
+          sx={{
+            px: 1.5,
+            py: 0.875,
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            flexShrink: 0,
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 0.5,
+          }}
+        >
+          {tags.map((tag) => {
+            const active = activeTagId === tag.id
+            return (
+              <Box
+                key={tag.id}
+                onClick={() => setActiveTagId(active ? null : tag.id)}
+                sx={{
+                  px: 0.875,
+                  py: 0.25,
+                  borderRadius: 0.5,
+                  fontSize: '0.5625rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.03em',
+                  cursor: 'pointer',
+                  lineHeight: 1.6,
+                  bgcolor: active ? tag.color : `${tag.color}22`,
+                  color: active ? '#fff' : tag.color,
+                  transition: 'all 0.15s',
+                  '&:hover': { bgcolor: active ? tag.color : `${tag.color}44` },
+                }}
+              >
+                {tag.name}
+              </Box>
+            )
+          })}
+        </Box>
+      )}
 
       {/* Monitor list */}
       <Box sx={{ flex: 1, overflowY: 'auto', p: 1.25, display: 'flex', flexDirection: 'column', gap: 0.5 }}>

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueries, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../infrastructure/apiClient'
 import type { Tag } from '../domain/tag'
 
@@ -53,4 +53,17 @@ export const useUnassignTag = () => {
     onSuccess: (_, { monitorId }) =>
       qc.invalidateQueries({ queryKey: ['monitor-tags', monitorId] }),
   })
+}
+
+export const useMonitorTagsMap = (monitorIds: string[]): Record<string, Tag[]> => {
+  const results = useQueries({
+    queries: monitorIds.map((id) => ({
+      queryKey: ['monitor-tags', id],
+      queryFn: () => apiClient.get(`/monitors/${id}/tags`).then((r) => r.data.data as Tag[]),
+      enabled: monitorIds.length > 0,
+    })),
+  })
+  const map: Record<string, Tag[]> = {}
+  monitorIds.forEach((id, i) => { map[id] = results[i].data ?? [] })
+  return map
 }

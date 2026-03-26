@@ -5,6 +5,7 @@ import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/material/styles'
 import { colors } from '../../shared/colors'
 import { useHeartbeats } from '../../application/useMonitors'
+import { useMonitorTags } from '../../application/useTags'
 import { UptimeBar } from './UptimeBar'
 import type { Monitor } from '../../domain/monitor'
 
@@ -31,6 +32,7 @@ export const MonitorListItem = forwardRef<HTMLDivElement, MonitorListItemProps>(
     const statusColor = getStatusColor(monitor.last_status, isDark)
 
     const { data: hbData } = useHeartbeats(monitor.id)
+    const { data: tags = [] } = useMonitorTags(monitor.id)
     const heartbeats = hbData?.data ?? []
     const blocks = heartbeats.length > 0
       ? heartbeats.map((h) => h.status as 'up' | 'down' | 'unknown')
@@ -92,6 +94,29 @@ export const MonitorListItem = forwardRef<HTMLDivElement, MonitorListItemProps>(
         <Box sx={{ height: 5, overflow: 'hidden' }}>
           <UptimeBar blocks={blocks} />
         </Box>
+
+        {tags.length > 0 && (
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.75 }}>
+            {tags.map((tag) => (
+              <Box
+                key={tag.id}
+                sx={{
+                  px: 0.75,
+                  py: 0.125,
+                  borderRadius: 0.5,
+                  fontSize: '0.5625rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.03em',
+                  bgcolor: `${tag.color}22`,
+                  color: tag.color,
+                  lineHeight: 1.6,
+                }}
+              >
+                {tag.name}
+              </Box>
+            ))}
+          </Box>
+        )}
       </Box>
     )
   }
