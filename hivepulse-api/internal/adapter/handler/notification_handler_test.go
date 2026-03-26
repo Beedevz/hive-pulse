@@ -34,8 +34,15 @@ func (m *mockNotificationService) DeleteChannel(_ context.Context, _ string) err
 func (m *mockNotificationService) ListChannels(_ context.Context) ([]*domain.NotificationChannel, error) {
 	return m.channels, m.err
 }
-func (m *mockNotificationService) GetChannelsForMonitor(_ context.Context, _ string) ([]*domain.NotificationChannel, error) {
-	return m.channels, m.err
+func (m *mockNotificationService) GetChannelsForMonitor(_ context.Context, _ string) ([]domain.MonitorChannelAssignment, error) {
+	assignments := make([]domain.MonitorChannelAssignment, len(m.channels))
+	for i, ch := range m.channels {
+		assignments[i] = domain.MonitorChannelAssignment{Channel: ch}
+	}
+	return assignments, m.err
+}
+func (m *mockNotificationService) UpdateAssignmentTriggers(_ context.Context, _, _ string, _ domain.AssignmentTriggers) error {
+	return m.err
 }
 func (m *mockNotificationService) AssignChannel(_ context.Context, _, _ string) error {
 	return m.err
