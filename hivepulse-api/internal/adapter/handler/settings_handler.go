@@ -1,24 +1,33 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
 	"github.com/beedevz/hivepulse/infrastructure"
+	"github.com/beedevz/hivepulse/internal/domain"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
+// GeneralSettingsService abstracts SettingsUsecase for the handler.
+type GeneralSettingsService interface {
+	GetGeneral(ctx context.Context) (*domain.GeneralSettings, error)
+	SaveGeneral(ctx context.Context, s *domain.GeneralSettings) error
+}
+
 // SettingsHandler manages application settings via the API.
 type SettingsHandler struct {
-	db  *gorm.DB
-	cfg *infrastructure.Config
+	db         *gorm.DB
+	cfg        *infrastructure.Config
+	settingsUC GeneralSettingsService
 }
 
 // NewSettingsHandler creates a new SettingsHandler.
-func NewSettingsHandler(db *gorm.DB, cfg *infrastructure.Config) *SettingsHandler {
-	return &SettingsHandler{db: db, cfg: cfg}
+func NewSettingsHandler(db *gorm.DB, cfg *infrastructure.Config, settingsUC GeneralSettingsService) *SettingsHandler {
+	return &SettingsHandler{db: db, cfg: cfg, settingsUC: settingsUC}
 }
 
 type smtpConfig struct {
@@ -98,6 +107,47 @@ func (h *SettingsHandler) PutSMTP(c *gin.Context) {
 	h.cfg.SMTPFrom = req.From
 
 	c.JSON(http.StatusOK, gin.H{"message": "smtp settings updated"})
+}
+
+// GetGeneral godoc
+// @Summary     Get general settings
+// @Tags        settings
+// @Produce     json
+// @Success     200  {object}  domain.GeneralSettings
+// @Failure     500  {object}  map[string]string
+// @Security    Bearer
+// @Router      /settings/general [get]
+func (h *SettingsHandler) GetGeneral(c *gin.Context) {
+	s, err := h.settingsUC.GetGeneral(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load settings"})
+		return
+	}
+	c.JSON(http.StatusOK, s)
+}
+
+// PutGeneral godoc
+// @Summary     Update general settings
+// @Tags        settings
+// @Accept      json
+// @Produce     json
+// @Param       body  body      domain.GeneralSettings  true  "General settings"
+// @Success     200   {object}  map[string]string
+// @Failure     400   {object}  map[string]string
+// @Failure     500   {object}  map[string]string
+// @Security    Bearer
+// @Router      /settings/general [put]
+func (h *SettingsHandler) PutGeneral(c *gin.Context) {
+	var req domain.GeneralSettings
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := h.settingsUC.SaveGeneral(c.Request.Context(), &req); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save settings"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "general settings updated"})
 }
 
 // LoadSMTPFromDB loads SMTP settings from the database at startup,

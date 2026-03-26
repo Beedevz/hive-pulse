@@ -14,7 +14,8 @@ type NotificationService interface {
 	UpdateChannel(ctx context.Context, ch *domain.NotificationChannel) error
 	DeleteChannel(ctx context.Context, id string) error
 	ListChannels(ctx context.Context) ([]*domain.NotificationChannel, error)
-	GetChannelsForMonitor(ctx context.Context, monitorID string) ([]*domain.NotificationChannel, error)
+	GetChannelsForMonitor(ctx context.Context, monitorID string) ([]domain.MonitorChannelAssignment, error)
+	UpdateAssignmentTriggers(ctx context.Context, monitorID, channelID string, triggers domain.AssignmentTriggers) error
 	AssignChannel(ctx context.Context, monitorID, channelID string) error
 	UnassignChannel(ctx context.Context, monitorID, channelID string) error
 	ListLogs(ctx context.Context, channelID string) ([]*domain.NotificationLog, error)
@@ -148,17 +149,55 @@ func (h *NotificationHandler) Logs(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": logs})
 }
 
+type assignmentResponse struct {
+	ID       string                    `json:"id"`
+	Name     string                    `json:"name"`
+	Type     string                    `json:"type"`
+	Triggers domain.AssignmentTriggers `json:"triggers"`
+}
+
 func (h *NotificationHandler) ListMonitorChannels(c *gin.Context) {
-	channels, err := h.svc.GetChannelsForMonitor(c.Request.Context(), c.Param("id"))
+	assignments, err := h.svc.GetChannelsForMonitor(c.Request.Context(), c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	resp := make([]channelResponse, len(channels))
-	for i, ch := range channels {
-		resp[i] = toChannelResponse(ch)
+	resp := make([]assignmentResponse, len(assignments))
+	for i, a := range assignments {
+		resp[i] = assignmentResponse{
+			ID:       a.Channel.ID,
+			Name:     a.Channel.Name,
+			Type:     string(a.Channel.Type),
+			Triggers: a.Triggers,
+		}
 	}
 	c.JSON(http.StatusOK, gin.H{"data": resp})
+}
+
+// UpdateAssignmentTriggers godoc
+// @Summary     Update trigger rules for a monitor-channel assignment
+// @Tags        monitors
+// @Accept      json
+// @Produce     json
+// @Param       id        path      string                       true  "Monitor ID"
+// @Param       channelId path      string                       true  "Channel ID"
+// @Param       body      body      domain.AssignmentTriggers    true  "Trigger rules"
+// @Success     200       {object}  map[string]string
+// @Failure     400       {object}  map[string]string
+// @Failure     500       {object}  map[string]string
+// @Security    Bearer
+// @Router      /monitors/{id}/channels/{channelId}/triggers [put]
+func (h *NotificationHandler) UpdateAssignmentTriggers(c *gin.Context) {
+	var triggers domain.AssignmentTriggers
+	if err := c.ShouldBindJSON(&triggers); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := h.svc.UpdateAssignmentTriggers(c.Request.Context(), c.Param("id"), c.Param("channelId"), triggers); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "triggers updated"})
 }
 
 func (h *NotificationHandler) AssignChannel(c *gin.Context) {

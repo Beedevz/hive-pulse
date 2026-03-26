@@ -86,7 +86,10 @@ func main() {
 		service.NewWebhookSender(),
 		service.NewSlackSender(),
 	)
-	notifUC := usecase.NewNotificationUsecase(notifRepo, dispatcher, monitorRepo)
+	settingsRepo := repo.NewSettingsRepo(db)
+	settingsUC := usecase.NewSettingsUsecase(settingsRepo)
+
+	notifUC := usecase.NewNotificationUsecase(notifRepo, dispatcher, monitorRepo, settingsRepo)
 	checkerUC.SetNotifier(notifUC)
 	aggregator.SetReminder(notifUC)
 
@@ -96,7 +99,7 @@ func main() {
 	notifHandler := handler.NewNotificationHandler(notifUC)
 
 	handler.LoadSMTPFromDB(db, cfg)
-	settingsHandler := handler.NewSettingsHandler(db, cfg)
+	settingsHandler := handler.NewSettingsHandler(db, cfg, settingsUC)
 
 	monitorUC := usecase.NewMonitorUsecase(monitorRepo, scheduler)
 	monitorHandler := handler.NewMonitorHandler(monitorUC, heartbeatRepo, statsUC)
@@ -151,6 +154,7 @@ func main() {
 		monitors.GET("/:id/channels", adminGuard, notifHandler.ListMonitorChannels)
 		monitors.POST("/:id/channels/:chID", adminGuard, notifHandler.AssignChannel)
 		monitors.DELETE("/:id/channels/:chID", adminGuard, notifHandler.UnassignChannel)
+		monitors.PUT("/:id/channels/:channelId/triggers", adminGuard, notifHandler.UpdateAssignmentTriggers)
 
 		notifs := v1.Group("/notification-channels")
 		notifs.Use(jwtAuth, adminGuard)
@@ -165,6 +169,8 @@ func main() {
 		settings.Use(jwtAuth, adminGuard)
 		settings.GET("/smtp", settingsHandler.GetSMTP)
 		settings.PUT("/smtp", settingsHandler.PutSMTP)
+		settings.GET("/general", settingsHandler.GetGeneral)
+		settings.PUT("/general", settingsHandler.PutGeneral)
 
 		incidents := v1.Group("/incidents")
 		incidents.Use(jwtAuth)
