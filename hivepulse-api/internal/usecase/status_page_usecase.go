@@ -2,8 +2,9 @@ package usecase
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"regexp"
 	"strings"
 	"time"
@@ -60,7 +61,8 @@ func generateSlug(title string) string {
 	const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
 	suffix := make([]byte, 4)
 	for i := range suffix {
-		suffix[i] = chars[rand.Intn(len(chars))]
+		n, _ := rand.Int(rand.Reader, big.NewInt(int64(len(chars))))
+		suffix[i] = chars[n.Int64()]
 	}
 	return clean + "-" + string(suffix)
 }

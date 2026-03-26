@@ -194,15 +194,17 @@ function MonitorRow({ monitor }: Readonly<{ monitor: PublicMonitorRow }>) {
   )
 }
 
-function IncidentRow({ incident, isActive }: Readonly<{ incident: PublicIncident; isActive?: boolean }>) {
-  const timeAgo = (() => {
-    const diff = Date.now() - new Date(incident.started_at).getTime()
-    const min = Math.floor(diff / 60000)
-    if (min < 60) return `${min}m ago`
-    const h = Math.floor(min / 60)
-    if (h < 24) return `${h}h ago`
-    return `${Math.floor(h / 24)}d ago`
-  })()
+function timeAgoFromNow(now: number, isoStr: string): string {
+  const diff = now - new Date(isoStr).getTime()
+  const min = Math.floor(diff / 60000)
+  if (min < 60) return `${min}m ago`
+  const h = Math.floor(min / 60)
+  if (h < 24) return `${h}h ago`
+  return `${Math.floor(h / 24)}d ago`
+}
+
+function IncidentRow({ incident, isActive, now }: Readonly<{ incident: PublicIncident; isActive?: boolean; now: number }>) {
+  const timeAgo = timeAgoFromNow(now, incident.started_at)
 
   const durationMin = incident.duration_s ? Math.round(incident.duration_s / 60) : null
   const statusKey = isActive ? 'investigating' : 'resolved'
@@ -246,6 +248,8 @@ function IncidentRow({ incident, isActive }: Readonly<{ incident: PublicIncident
   )
 }
 
+const PAGE_LOAD_TIME = Date.now()
+
 export function PublicStatusPage() {
   const { slug } = useParams<{ slug: string }>()
   const { data, isPending, isError } = usePublicStatusPage(slug ?? '')
@@ -272,6 +276,7 @@ export function PublicStatusPage() {
   const overallLabel = OVERALL_LABEL[data.overall_status] ?? data.overall_status
   const onlineCount = data.monitors.filter((m) => m.last_status === 'up').length
   const totalCount = data.monitors.length
+  const nowTs = PAGE_LOAD_TIME
   const allIncidents = [
     ...data.active_incidents.map((i) => ({ ...i, isActive: true })),
     ...data.recent_incidents.map((i) => ({ ...i, isActive: false })),
@@ -344,7 +349,7 @@ export function PublicStatusPage() {
               }}
             >
               {allIncidents.map((inc) => (
-                <IncidentRow key={inc.id} incident={inc} isActive={inc.isActive} />
+                <IncidentRow key={inc.id} incident={inc} isActive={inc.isActive} now={nowTs} />
               ))}
             </Box>
           </Box>
