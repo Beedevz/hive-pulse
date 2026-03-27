@@ -2,6 +2,12 @@
 
 All notable changes to HivePulse are documented here.
 
+## [1.3.0] — 2026-03-27
+
+### 🚀 Features
+
+- ResponseTimeChart — down overlays and 9-option range selector (#26)
+
 ## [1.2.0] — 2026-03-27
 
 ### 🚀 Features
