@@ -2,6 +2,20 @@
 
 All notable changes to HivePulse are documented here.
 
+## [1.2.0] — 2026-03-27
+
+### 🚀 Features
+
+- Add inline notification log list to ChannelCard with summary row and collapsible log entries
+
+### ♻️ Refactor
+
+- `ListLogs` LEFT JOINs monitors to return `monitor_name`; `Logs` handler maps through `logResponse` DTO with RFC3339 timestamps and Swagger annotation
+
+### 🧪 Tests
+
+- Add ChannelCard log UI tests (TDD) and backend integration test cases for `MonitorName` in `ListLogs`
+
 ## [1.1.0] — 2026-03-26
 
 ### ♻️ Refactor
