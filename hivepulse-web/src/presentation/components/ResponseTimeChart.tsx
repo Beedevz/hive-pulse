@@ -28,6 +28,8 @@ function formatTick(ts: number, range: StatsRange): string {
 export function ResponseTimeChart({ buckets, downPeriods, range, onRangeChange }: Readonly<Props>) {
   const theme = useTheme()
 
+  const now = Date.now()
+
   const data = buckets.map((b) => ({
     ts: new Date(b.time).getTime(),
     avg_ping_ms: b.avg_ping_ms,
@@ -84,7 +86,7 @@ export function ResponseTimeChart({ buckets, downPeriods, range, onRangeChange }
               <ReferenceArea
                 key={i}
                 x1={new Date(dp.started_at).getTime()}
-                x2={dp.resolved_at ? new Date(dp.resolved_at).getTime() : Date.now()}
+                x2={dp.resolved_at ? new Date(dp.resolved_at).getTime() : now}
                 fill="rgba(248,113,113,0.35)"
                 strokeOpacity={0}
               />
