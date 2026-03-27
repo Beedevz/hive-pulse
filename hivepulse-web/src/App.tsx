@@ -7,6 +7,7 @@ import { MonitorsPage } from './presentation/pages/MonitorsPage'
 import { AlertsPage } from './presentation/pages/AlertsPage'
 import { SettingsPage } from './presentation/pages/SettingsPage'
 import { AppLayout } from './presentation/components/AppLayout'
+import { DashboardLayout } from './presentation/components/DashboardLayout'
 import { PrivateRoute } from './presentation/components/PrivateRoute'
 import { StatusPagesPage } from './presentation/pages/StatusPagesPage'
 import { PublicStatusPage } from './presentation/pages/PublicStatusPage'
@@ -33,11 +34,13 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/s/:slug" element={<PublicStatusPage />} />
       <Route element={<PrivateRoute><AppLayout /></PrivateRoute>}>
-        <Route path="/dashboard" element={<MonitorsPage />} />
-        <Route path="/monitors/:id" element={<MonitorsPage />} />
-        <Route path="/alerts" element={<AlertsPage />} />
-        <Route path="/status-pages" element={<StatusPagesPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
+        <Route element={<DashboardLayout />}>
+          <Route path="/dashboard" element={<MonitorsPage />} />
+          <Route path="/monitors/:id" element={<MonitorsPage />} />
+          <Route path="/alerts" element={<AlertsPage />} />
+          <Route path="/status-pages" element={<StatusPagesPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+        </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

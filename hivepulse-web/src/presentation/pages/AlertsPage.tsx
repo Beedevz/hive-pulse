@@ -11,9 +11,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import { useIncidents } from '../../application/useIncidents'
 import type { IncidentFilter } from '../../application/useIncidents'
 import type { Incident } from '../../domain/incident'
-import { LeftPanel } from '../components/LeftPanel'
 import { MonitorDetailSection } from '../components/MonitorDetailSection'
-import { StatsBar } from '../components/StatsBar'
 
 function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600)
@@ -135,7 +133,7 @@ function ResolvedIncidentCard({ inc, selected, onClick }: Readonly<IncidentCardP
   )
 }
 
-function AlertsPanel() {
+export function AlertsPage() {
   const [filter, setFilter] = useState<IncidentFilter>('all')
   const [selectedMonitorId, setSelectedMonitorId] = useState<string | null>(null)
   const { data: activeData,   isLoading: loadingActive }   = useIncidents('active')
@@ -145,11 +143,10 @@ function AlertsPanel() {
   const resolvedIncidents = resolvedData?.data ?? []
   const showActive   = filter === 'all' || filter === 'active'
   const showResolved = filter === 'all' || filter === 'resolved'
+  const listFlex     = selectedMonitorId ? '0 0 380px' : 1
 
   const handleSelect = (monitorId: string) =>
     setSelectedMonitorId((prev) => (prev === monitorId ? null : monitorId))
-
-  const listFlex = selectedMonitorId ? '0 0 380px' : 1
 
   return (
     <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
@@ -237,18 +234,6 @@ function AlertsPanel() {
           <Typography fontSize="0.6875rem" color="text.secondary">Select an incident to view monitor details</Typography>
         </Box>
       )}
-    </Box>
-  )
-}
-
-export function AlertsPage() {
-  return (
-    <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', height: '100%' }}>
-      <LeftPanel selectedMonitorId={null} onAddClick={() => {}} />
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
-        <StatsBar />
-        <AlertsPanel />
-      </Box>
     </Box>
   )
 }
