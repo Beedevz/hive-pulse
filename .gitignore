@@ -1,6 +1,7 @@
 # Go
 hivepulse-api/bin/
 hivepulse-api/vendor/
+hivepulse-api/server
 *.exe
 *.exe~
 *.dll
@@ -19,12 +20,18 @@ hivepulse-web/dist/
 hivepulse-web/.env.local
 hivepulse-web/.env.*.local
 
-# Superpowers
-.superpowers/
+# Design / planning docs (local only)
+*.docx
+*.pdf
+hivepulse-design-system-prompt.md
+docs/
 
-# Worktrees
+# Superpowers / Claude
+.superpowers/
 .worktrees/
 CLAUDE.md
-docs/superpowers/
 .claude
+
+# OS
 .DS_Store
+Thumbs.db

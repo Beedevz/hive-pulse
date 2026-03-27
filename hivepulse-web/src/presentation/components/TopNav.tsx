@@ -5,6 +5,7 @@ import Typography from '@mui/material/Typography'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import IconButton from '@mui/material/IconButton'
+import SettingsIcon from '@mui/icons-material/Settings'
 import { useTheme } from '@mui/material/styles'
 import { colors } from '../../shared/colors'
 import { HivePulseLogo } from './Logo'
@@ -62,7 +63,6 @@ export function TopNav() {
           { to: '/dashboard',     label: 'Monitors' },
           { to: '/alerts',        label: 'Alerts' },
           { to: '/status-pages',  label: 'Status' },
-          { to: '/settings',      label: 'Settings' },
         ].map(({ to, label }) => (
           <NavLink
             key={to}
@@ -129,6 +129,17 @@ export function TopNav() {
           sx={{ color: 'text.secondary', fontSize: '1rem', width: 28, height: 28 }}
         >
           {mode === 'dark' ? '☀' : '☾'}
+        </IconButton>
+
+        {/* Settings */}
+        <IconButton
+          size="small"
+          component={NavLink}
+          to="/settings"
+          aria-label="Settings"
+          sx={{ color: 'text.secondary', width: 28, height: 28 }}
+        >
+          <SettingsIcon sx={{ fontSize: 17 }} />
         </IconButton>
 
         {/* Avatar */}

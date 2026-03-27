@@ -11,6 +11,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import { useIncidents } from '../../application/useIncidents'
 import type { IncidentFilter } from '../../application/useIncidents'
 import type { Incident } from '../../domain/incident'
+import { MonitorDetailSection } from '../components/MonitorDetailSection'
 
 function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600)
@@ -38,21 +39,31 @@ function LiveDuration({ startedAt }: Readonly<{ startedAt: string }>) {
   )
 }
 
-function ActiveIncidentCard({ inc }: Readonly<{ inc: Incident }>) {
+interface IncidentCardProps {
+  inc: Incident
+  selected: boolean
+  onClick: () => void
+}
+
+function ActiveIncidentCard({ inc, selected, onClick }: Readonly<IncidentCardProps>) {
   return (
     <Box
+      onClick={onClick}
       sx={{
         borderLeft: '3px solid #f87171',
-        border: '1px solid rgba(239,68,68,0.25)',
+        border: '1px solid',
+        borderColor: selected ? 'rgba(239,68,68,0.5)' : 'rgba(239,68,68,0.25)',
         borderLeftColor: '#f87171',
         borderLeftWidth: 3,
         borderRadius: 2,
-        bgcolor: 'rgba(239,68,68,0.04)',
+        bgcolor: selected ? 'rgba(239,68,68,0.08)' : 'rgba(239,68,68,0.04)',
         mb: 1.5,
         overflow: 'hidden',
+        cursor: 'pointer',
+        transition: 'background 0.15s',
+        '&:hover': { bgcolor: 'rgba(239,68,68,0.08)' },
       }}
     >
-      {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1.5, borderBottom: '1px solid rgba(239,68,68,0.12)' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#f87171', boxShadow: '0 0 8px rgba(248,113,113,0.8)', flexShrink: 0 }} />
@@ -66,7 +77,6 @@ function ActiveIncidentCard({ inc }: Readonly<{ inc: Incident }>) {
         </Box>
       </Box>
 
-      {/* Error message */}
       {inc.error_msg && (
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, px: 2, py: 1.25, borderBottom: '1px solid rgba(239,68,68,0.08)' }}>
           <ErrorOutlineIcon sx={{ fontSize: 15, color: 'error.main', mt: 0.1, flexShrink: 0 }} />
@@ -74,7 +84,6 @@ function ActiveIncidentCard({ inc }: Readonly<{ inc: Incident }>) {
         </Box>
       )}
 
-      {/* Meta */}
       <Box sx={{ px: 2, py: 1.25 }}>
         <Typography fontSize="0.8125rem" color="text.secondary">
           Started: <Box component="span" sx={{ color: 'text.primary' }}>{new Date(inc.started_at).toLocaleString()}</Box>
@@ -84,18 +93,22 @@ function ActiveIncidentCard({ inc }: Readonly<{ inc: Incident }>) {
   )
 }
 
-function ResolvedIncidentCard({ inc }: Readonly<{ inc: Incident }>) {
+function ResolvedIncidentCard({ inc, selected, onClick }: Readonly<IncidentCardProps>) {
   return (
     <Box
+      onClick={onClick}
       sx={{
         borderLeft: '3px solid #4ade80',
         border: '1px solid',
-        borderColor: 'divider',
+        borderColor: selected ? 'rgba(74,222,128,0.4)' : 'divider',
         borderLeftColor: '#4ade80',
         borderLeftWidth: 3,
         borderRadius: 2,
-        bgcolor: 'background.paper',
+        bgcolor: selected ? 'rgba(74,222,128,0.06)' : 'background.paper',
         mb: 1.5,
+        cursor: 'pointer',
+        transition: 'background 0.15s',
+        '&:hover': { bgcolor: 'rgba(74,222,128,0.06)' },
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1.5 }}>
@@ -125,6 +138,7 @@ function ResolvedIncidentCard({ inc }: Readonly<{ inc: Incident }>) {
 
 export function AlertsPage() {
   const [filter, setFilter] = useState<IncidentFilter>('all')
+  const [selectedMonitorId, setSelectedMonitorId] = useState<string | null>(null)
   const { data: activeData,   isLoading: loadingActive }   = useIncidents('active')
   const { data: resolvedData, isLoading: loadingResolved } = useIncidents('resolved')
 
@@ -134,9 +148,11 @@ export function AlertsPage() {
   const showResolved = filter === 'all' || filter === 'resolved'
 
   return (
-    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+    <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      {/* Left: incident list */}
+      <Box sx={{ width: 480, flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
         {/* Header */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 4, py: 2.5, borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 3, py: 2, borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0 }}>
           <Box>
             <Typography variant="h6" fontWeight={600} color="text.primary" fontSize="1.0625rem">Alerts</Typography>
             <Typography variant="body2" fontSize="0.8125rem">
@@ -152,7 +168,7 @@ export function AlertsPage() {
             exclusive
             onChange={(_, v) => { if (v) setFilter(v) }}
             size="small"
-            sx={{ '& .MuiToggleButton-root': { textTransform: 'none', fontSize: '0.8125rem', px: 2, py: 0.75, color: 'text.secondary', borderColor: 'divider' } }}
+            sx={{ '& .MuiToggleButton-root': { textTransform: 'none', fontSize: '0.75rem', px: 1.5, py: 0.5, color: 'text.secondary', borderColor: 'divider' } }}
           >
             <ToggleButton value="all">All</ToggleButton>
             <ToggleButton value="active" aria-label="Active">
@@ -165,16 +181,15 @@ export function AlertsPage() {
           </ToggleButtonGroup>
         </Box>
 
-        {/* Content */}
-        <Box sx={{ flex: 1, px: 4, py: 3 }}>
+        {/* Incident list */}
+        <Box sx={{ flex: 1, px: 3, py: 2.5, overflowY: 'auto' }}>
           {showActive && (
-            <Box sx={{ mb: 4 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <WarningAmberIcon sx={{ fontSize: 15, color: 'error.main' }} />
-                <Typography fontSize="0.75rem" fontWeight={700} color="error.main" sx={{ textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  Active Incidents
+            <Box sx={{ mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <WarningAmberIcon sx={{ fontSize: 13, color: 'error.main' }} />
+                <Typography fontSize="0.6875rem" fontWeight={700} color="error.main" sx={{ textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Active ({activeIncidents.length})
                 </Typography>
-                <Typography fontSize="0.75rem" color="text.secondary">({activeIncidents.length})</Typography>
               </Box>
 
               {loadingActive && <Typography color="text.secondary" fontSize="0.875rem">Loading…</Typography>}
@@ -182,24 +197,28 @@ export function AlertsPage() {
               {!loadingActive && activeIncidents.length === 0 && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 1.5, borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'background.default' }}>
                   <CheckCircleOutlineIcon sx={{ fontSize: 15, color: 'success.main' }} />
-                  <Typography fontSize="0.875rem" color="text.secondary">All monitors are up — no active incidents.</Typography>
+                  <Typography fontSize="0.875rem" color="text.secondary">All monitors are up.</Typography>
                 </Box>
               )}
 
               {!loadingActive && activeIncidents.map((inc) => (
-                <ActiveIncidentCard key={inc.id} inc={inc} />
+                <ActiveIncidentCard
+                  key={inc.id}
+                  inc={inc}
+                  selected={selectedMonitorId === inc.monitor_id}
+                  onClick={() => setSelectedMonitorId(inc.monitor_id === selectedMonitorId ? null : inc.monitor_id)}
+                />
               ))}
             </Box>
           )}
 
           {showResolved && (
             <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <CheckCircleOutlineIcon sx={{ fontSize: 15, color: 'success.main' }} />
-                <Typography fontSize="0.75rem" fontWeight={700} color="success.main" sx={{ textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  Resolved
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <CheckCircleOutlineIcon sx={{ fontSize: 13, color: 'success.main' }} />
+                <Typography fontSize="0.6875rem" fontWeight={700} color="success.main" sx={{ textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Resolved ({resolvedIncidents.length})
                 </Typography>
-                <Typography fontSize="0.75rem" color="text.secondary">({resolvedIncidents.length})</Typography>
               </Box>
 
               {loadingResolved && <Typography color="text.secondary" fontSize="0.875rem">Loading…</Typography>}
@@ -209,11 +228,27 @@ export function AlertsPage() {
               )}
 
               {!loadingResolved && resolvedIncidents.map((inc) => (
-                <ResolvedIncidentCard key={inc.id} inc={inc} />
+                <ResolvedIncidentCard
+                  key={inc.id}
+                  inc={inc}
+                  selected={selectedMonitorId === inc.monitor_id}
+                  onClick={() => setSelectedMonitorId(inc.monitor_id === selectedMonitorId ? null : inc.monitor_id)}
+                />
               ))}
             </Box>
           )}
         </Box>
+      </Box>
+
+      {/* Right: monitor detail */}
+      {selectedMonitorId ? (
+        <MonitorDetailSection key={selectedMonitorId} monitorId={selectedMonitorId} />
+      ) : (
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.4 }}>
+          <Typography fontSize="1.75rem" sx={{ mb: 1 }}>◈</Typography>
+          <Typography fontSize="0.6875rem" color="text.secondary">Select an incident to view monitor details</Typography>
+        </Box>
+      )}
     </Box>
   )
 }
