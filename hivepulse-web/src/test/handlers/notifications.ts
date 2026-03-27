@@ -25,9 +25,33 @@ export const notificationHandlers = [
   http.delete('http://localhost:8080/api/v1/notification-channels/:id', () =>
     new HttpResponse(null, { status: 204 })
   ),
-  http.get('http://localhost:8080/api/v1/notification-channels/:id/logs', () =>
-    HttpResponse.json({ data: [] })
-  ),
+  http.get('http://localhost:8080/api/v1/notification-channels/:id/logs', ({ params }) => {
+    if (params.id === 'ch-empty') return HttpResponse.json({ data: [] })
+    return HttpResponse.json({
+      data: [
+        {
+          id: 1,
+          channel_id: 'ch-1',
+          monitor_id: 'monitor-1',
+          monitor_name: 'Test API',
+          event: 'down',
+          status: 'sent',
+          error_msg: '',
+          sent_at: new Date(Date.now() - 7_200_000).toISOString(),
+        },
+        {
+          id: 2,
+          channel_id: 'ch-1',
+          monitor_id: 'monitor-2',
+          monitor_name: '',
+          event: 'down',
+          status: 'failed',
+          error_msg: 'dial tcp: connection refused',
+          sent_at: new Date(Date.now() - 18_000_000).toISOString(),
+        },
+      ],
+    })
+  }),
   http.get('http://localhost:8080/api/v1/monitors/:id/channels', () =>
     HttpResponse.json({
       data: [
