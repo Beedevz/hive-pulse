@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/beedevz/hivepulse/internal/domain"
 	"github.com/gin-gonic/gin"
@@ -140,13 +141,45 @@ func (h *NotificationHandler) Delete(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// @Summary      List notification logs for a channel
+// @Tags         notification-channels
+// @Produce      json
+// @Security     Bearer
+// @Param        id   path      string  true  "Channel ID"
+// @Success      200  {object}  map[string][]logResponse
+// @Failure      500  {object}  map[string]string
+// @Router       /notification-channels/{id}/logs [get]
 func (h *NotificationHandler) Logs(c *gin.Context) {
 	logs, err := h.svc.ListLogs(c.Request.Context(), c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": logs})
+	resp := make([]logResponse, len(logs))
+	for i, l := range logs {
+		resp[i] = logResponse{
+			ID:          l.ID,
+			ChannelID:   l.ChannelID,
+			MonitorID:   l.MonitorID,
+			MonitorName: l.MonitorName,
+			Event:       string(l.Event),
+			Status:      l.Status,
+			ErrorMsg:    l.ErrorMsg,
+			SentAt:      l.SentAt.Format(time.RFC3339),
+		}
+	}
+	c.JSON(http.StatusOK, gin.H{"data": resp})
+}
+
+type logResponse struct {
+	ID          int64  `json:"id"`
+	ChannelID   string `json:"channel_id"`
+	MonitorID   string `json:"monitor_id"`
+	MonitorName string `json:"monitor_name"`
+	Event       string `json:"event"`
+	Status      string `json:"status"`
+	ErrorMsg    string `json:"error_msg,omitempty"`
+	SentAt      string `json:"sent_at"`
 }
 
 type assignmentResponse struct {

@@ -36,12 +36,13 @@ export const useDeleteChannel = () => {
   })
 }
 
-export const useChannelLogs = (channelId: string) =>
+export const useChannelLogs = (channelId: string, isOpen: boolean) =>
   useQuery<NotificationLog[]>({
     queryKey: ['notification-channels', channelId, 'logs'],
     queryFn: () =>
       apiClient.get(`/notification-channels/${channelId}/logs`).then((r) => r.data.data),
-    enabled: !!channelId,
+    enabled: !!channelId && isOpen,
+    staleTime: 60_000,
   })
 
 export const useMonitorChannels = (monitorId: string) =>

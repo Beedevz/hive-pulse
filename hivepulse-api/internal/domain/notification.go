@@ -31,13 +31,14 @@ const (
 )
 
 type NotificationLog struct {
-	ID        int64
-	ChannelID string
-	MonitorID string
-	Event     NotificationEvent
-	Status    string // "sent" | "failed"
-	ErrorMsg  string
-	SentAt    time.Time
+	ID          int64
+	ChannelID   string
+	MonitorName string // resolved via JOIN; empty string if monitor was deleted
+	MonitorID   string
+	Event       NotificationEvent
+	Status      string // "sent" | "failed"
+	ErrorMsg    string
+	SentAt      time.Time
 }
 
 // ReminderTarget is a (monitor, channel) pair eligible for re-notification.
