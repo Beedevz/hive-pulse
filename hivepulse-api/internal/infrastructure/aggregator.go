@@ -55,7 +55,7 @@ func (a *Aggregator) Tick(ctx context.Context) error {
 			return err
 		}
 
-		// 2. UPSERT minutely buckets (last 2 minutes)
+		// 2. UPSERT minutely buckets (last 10 minutes — covers full 5-min tick interval with margin)
 		if err := tx.Exec(`
 			INSERT INTO stats_minutely (monitor_id, minute, up_count, total_count, avg_ping_ms)
 			SELECT
@@ -65,7 +65,7 @@ func (a *Aggregator) Tick(ctx context.Context) error {
 				COUNT(*) AS total_count,
 				COALESCE(AVG(ping_ms)::int, 0) AS avg_ping_ms
 			FROM heartbeats
-			WHERE checked_at >= NOW() - INTERVAL '2 minutes'
+			WHERE checked_at >= NOW() - INTERVAL '10 minutes'
 			GROUP BY monitor_id, date_trunc('minute', checked_at)
 			ON CONFLICT (monitor_id, minute) DO UPDATE
 			SET up_count    = EXCLUDED.up_count,
@@ -105,8 +105,8 @@ func (a *Aggregator) Tick(ctx context.Context) error {
 			return err
 		}
 
-		// 5. Delete stats_hourly older than 8 days
-		if err := tx.Exec(`DELETE FROM stats_hourly WHERE hour < NOW() - INTERVAL '8 days'`).Error; err != nil {
+		// 5. Delete stats_hourly older than 90 days
+		if err := tx.Exec(`DELETE FROM stats_hourly WHERE hour < NOW() - INTERVAL '90 days'`).Error; err != nil {
 			return err
 		}
 
