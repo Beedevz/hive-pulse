@@ -230,18 +230,24 @@ func (r *NotificationRepo) LogNotification(ctx context.Context, log *domain.Noti
 
 func (r *NotificationRepo) ListLogs(ctx context.Context, channelID string) ([]*domain.NotificationLog, error) {
 	type logRow struct {
-		ID        int64
-		ChannelID string
-		MonitorID string
-		Event     string
-		Status    string
-		ErrorMsg  string
-		SentAt    time.Time
+		ID          int64     `gorm:"column:id"`
+		ChannelID   string    `gorm:"column:channel_id"`
+		MonitorID   string    `gorm:"column:monitor_id"`
+		MonitorName string    `gorm:"column:monitor_name"`
+		Event       string    `gorm:"column:event"`
+		Status      string    `gorm:"column:status"`
+		ErrorMsg    string    `gorm:"column:error_msg"`
+		SentAt      time.Time `gorm:"column:sent_at"`
 	}
 	var rows []logRow
 	if err := r.db.WithContext(ctx).Raw(
-		`SELECT id, channel_id, monitor_id, event, status, error_msg, sent_at
-		 FROM notification_logs WHERE channel_id = ? ORDER BY sent_at DESC LIMIT 100`,
+		`SELECT l.id, l.channel_id, l.monitor_id,
+		        COALESCE(m.name, '') AS monitor_name,
+		        l.event, l.status, l.error_msg, l.sent_at
+		 FROM notification_logs l
+		 LEFT JOIN monitors m ON m.id = l.monitor_id
+		 WHERE l.channel_id = ?
+		 ORDER BY l.sent_at DESC LIMIT 100`,
 		channelID,
 	).Scan(&rows).Error; err != nil {
 		return nil, err
@@ -249,13 +255,14 @@ func (r *NotificationRepo) ListLogs(ctx context.Context, channelID string) ([]*d
 	result := make([]*domain.NotificationLog, len(rows))
 	for i, row := range rows {
 		result[i] = &domain.NotificationLog{
-			ID:        row.ID,
-			ChannelID: row.ChannelID,
-			MonitorID: row.MonitorID,
-			Event:     domain.NotificationEvent(row.Event),
-			Status:    row.Status,
-			ErrorMsg:  row.ErrorMsg,
-			SentAt:    row.SentAt,
+			ID:          row.ID,
+			ChannelID:   row.ChannelID,
+			MonitorID:   row.MonitorID,
+			MonitorName: row.MonitorName,
+			Event:       domain.NotificationEvent(row.Event),
+			Status:      row.Status,
+			ErrorMsg:    row.ErrorMsg,
+			SentAt:      row.SentAt,
 		}
 	}
 	return result, nil
