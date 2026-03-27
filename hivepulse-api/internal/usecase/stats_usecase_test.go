@@ -13,65 +13,87 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetStats_24h_UsesHourly(t *testing.T) {
-	repo := mocks.NewStatsRepository(t)
-	now := time.Now()
-	buckets := []*domain.StatsBucket{
-		{Time: now.Add(-1 * time.Hour), UpCount: 12, TotalCount: 12, AvgPingMS: 100},
-	}
-	repo.On("GetHourly", mock.Anything, "m1", mock.MatchedBy(func(since time.Time) bool {
-		return since.After(now.Add(-25*time.Hour)) && since.Before(now.Add(-23*time.Hour))
-	})).Return(buckets, nil)
+func newStatsUC(statsRepo *mocks.StatsRepository, incidentRepo *mocks.IncidentRepository) *usecase.StatsUsecase {
+	return usecase.NewStatsUsecase(statsRepo, incidentRepo)
+}
 
-	uc := usecase.NewStatsUsecase(repo)
-	resp, err := uc.GetStats(context.Background(), "m1", "24h")
+func TestGetStats_1h_UsesMinutely(t *testing.T) {
+	statsRepo := mocks.NewStatsRepository(t)
+	incidentRepo := mocks.NewIncidentRepository(t)
+	buckets := []*domain.StatsBucket{{Time: time.Now().Add(-30 * time.Minute), UpCount: 1, TotalCount: 1, AvgPingMS: 50}}
+	statsRepo.On("GetMinutely", mock.Anything, "m1", mock.AnythingOfType("time.Time")).Return(buckets, nil)
+	incidentRepo.On("FindByMonitorAndTimeRange", mock.Anything, "m1", mock.AnythingOfType("time.Time")).Return([]*domain.Incident{}, nil)
+
+	uc := newStatsUC(statsRepo, incidentRepo)
+	resp, err := uc.GetStats(context.Background(), "m1", "1h")
 	require.NoError(t, err)
-	assert.Equal(t, 1, len(resp.Buckets))
-	assert.InDelta(t, 100.0, resp.UptimePct, 0.001)
-	assert.Equal(t, 100, resp.AvgPingMS)
+	assert.Len(t, resp.Buckets, 1)
+	statsRepo.AssertCalled(t, "GetMinutely", mock.Anything, "m1", mock.AnythingOfType("time.Time"))
+	statsRepo.AssertNotCalled(t, "GetHourly")
+}
+
+func TestGetStats_24h_UsesMinutely(t *testing.T) {
+	statsRepo := mocks.NewStatsRepository(t)
+	incidentRepo := mocks.NewIncidentRepository(t)
+	statsRepo.On("GetMinutely", mock.Anything, "m1", mock.AnythingOfType("time.Time")).Return([]*domain.StatsBucket{}, nil)
+	incidentRepo.On("FindByMonitorAndTimeRange", mock.Anything, "m1", mock.AnythingOfType("time.Time")).Return([]*domain.Incident{}, nil)
+
+	uc := newStatsUC(statsRepo, incidentRepo)
+	_, err := uc.GetStats(context.Background(), "m1", "24h")
+	require.NoError(t, err)
+	statsRepo.AssertCalled(t, "GetMinutely", mock.Anything, "m1", mock.AnythingOfType("time.Time"))
+	statsRepo.AssertNotCalled(t, "GetHourly")
 }
 
 func TestGetStats_7d_UsesHourly(t *testing.T) {
-	repo := mocks.NewStatsRepository(t)
-	repo.On("GetHourly", mock.Anything, "m1", mock.AnythingOfType("time.Time")).Return([]*domain.StatsBucket{}, nil)
+	statsRepo := mocks.NewStatsRepository(t)
+	incidentRepo := mocks.NewIncidentRepository(t)
+	statsRepo.On("GetHourly", mock.Anything, "m1", mock.AnythingOfType("time.Time")).Return([]*domain.StatsBucket{}, nil)
+	incidentRepo.On("FindByMonitorAndTimeRange", mock.Anything, "m1", mock.AnythingOfType("time.Time")).Return([]*domain.Incident{}, nil)
 
-	uc := usecase.NewStatsUsecase(repo)
-	resp, err := uc.GetStats(context.Background(), "m1", "7d")
+	uc := newStatsUC(statsRepo, incidentRepo)
+	_, err := uc.GetStats(context.Background(), "m1", "7d")
 	require.NoError(t, err)
-	assert.Equal(t, 0.0, resp.UptimePct)
+	statsRepo.AssertCalled(t, "GetHourly", mock.Anything, "m1", mock.AnythingOfType("time.Time"))
+	statsRepo.AssertNotCalled(t, "GetMinutely")
 }
 
 func TestGetStats_90d_UsesDaily(t *testing.T) {
-	repo := mocks.NewStatsRepository(t)
-	repo.On("GetDaily", mock.Anything, "m1", mock.AnythingOfType("time.Time")).Return([]*domain.StatsBucket{}, nil)
+	statsRepo := mocks.NewStatsRepository(t)
+	incidentRepo := mocks.NewIncidentRepository(t)
+	statsRepo.On("GetDaily", mock.Anything, "m1", mock.AnythingOfType("time.Time")).Return([]*domain.StatsBucket{}, nil)
+	incidentRepo.On("FindByMonitorAndTimeRange", mock.Anything, "m1", mock.AnythingOfType("time.Time")).Return([]*domain.Incident{}, nil)
 
-	uc := usecase.NewStatsUsecase(repo)
+	uc := newStatsUC(statsRepo, incidentRepo)
 	_, err := uc.GetStats(context.Background(), "m1", "90d")
 	require.NoError(t, err)
-	repo.AssertCalled(t, "GetDaily", mock.Anything, "m1", mock.AnythingOfType("time.Time"))
-	repo.AssertNotCalled(t, "GetHourly")
+	statsRepo.AssertCalled(t, "GetDaily", mock.Anything, "m1", mock.AnythingOfType("time.Time"))
 }
 
 func TestGetStats_InvalidRange_ReturnsError(t *testing.T) {
-	repo := mocks.NewStatsRepository(t)
-	uc := usecase.NewStatsUsecase(repo)
+	statsRepo := mocks.NewStatsRepository(t)
+	incidentRepo := mocks.NewIncidentRepository(t)
+	uc := newStatsUC(statsRepo, incidentRepo)
 	_, err := uc.GetStats(context.Background(), "m1", "99y")
 	require.Error(t, err)
 }
 
-func TestGetStats_UptimePct_Calculation(t *testing.T) {
-	repo := mocks.NewStatsRepository(t)
-	buckets := []*domain.StatsBucket{
-		{UpCount: 9, TotalCount: 10, AvgPingMS: 200},
-		{UpCount: 10, TotalCount: 10, AvgPingMS: 100},
-	}
-	repo.On("GetHourly", mock.Anything, "m1", mock.AnythingOfType("time.Time")).Return(buckets, nil)
+func TestGetStats_PopulatesDownPeriods(t *testing.T) {
+	statsRepo := mocks.NewStatsRepository(t)
+	incidentRepo := mocks.NewIncidentRepository(t)
+	statsRepo.On("GetMinutely", mock.Anything, "m1", mock.AnythingOfType("time.Time")).Return([]*domain.StatsBucket{}, nil)
 
-	uc := usecase.NewStatsUsecase(repo)
-	resp, err := uc.GetStats(context.Background(), "m1", "24h")
+	resolved := time.Now().Add(-10 * time.Minute)
+	incidents := []*domain.Incident{
+		{ID: 1, MonitorID: "m1", StartedAt: time.Now().Add(-30 * time.Minute), ResolvedAt: &resolved},
+		{ID: 2, MonitorID: "m1", StartedAt: time.Now().Add(-5 * time.Minute), ResolvedAt: nil}, // active
+	}
+	incidentRepo.On("FindByMonitorAndTimeRange", mock.Anything, "m1", mock.AnythingOfType("time.Time")).Return(incidents, nil)
+
+	uc := newStatsUC(statsRepo, incidentRepo)
+	resp, err := uc.GetStats(context.Background(), "m1", "1h")
 	require.NoError(t, err)
-	// (9+10)/(10+10) * 100 = 95.0
-	assert.InDelta(t, 95.0, resp.UptimePct, 0.001)
-	// avg of 200 and 100 = 150
-	assert.Equal(t, 150, resp.AvgPingMS)
+	require.Len(t, resp.DownPeriods, 2)
+	assert.NotNil(t, resp.DownPeriods[0].ResolvedAt)
+	assert.Nil(t, resp.DownPeriods[1].ResolvedAt) // active incident has nil ResolvedAt
 }
