@@ -375,7 +375,7 @@ export function MonitorDetailSection({ monitorId, onEdit, onDelete }: Readonly<M
               <Typography fontSize="0.625rem" color="text.secondary" textTransform="uppercase" letterSpacing="0.06em" mb={0.5}>
                 {label}
               </Typography>
-              <Typography fontSize="1.125rem" fontWeight={700} color="text.primary" fontFamily="'IBM Plex Mono', monospace">
+              <Typography fontSize="1.125rem" fontWeight={700} color="text.primary">
                 {value}
               </Typography>
             </Box>

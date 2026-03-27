@@ -223,7 +223,7 @@ export function SettingsPage() {
 
         {/* Right content */}
         <Box sx={{ flex: 1, p: 4, maxWidth: 680 }}>
-          <Typography variant="h6" fontWeight={700} fontFamily="'Bricolage Grotesque', sans-serif" mb={3}>
+          <Typography variant="h6" fontWeight={700}  mb={3}>
             {currentLabel}
           </Typography>
 

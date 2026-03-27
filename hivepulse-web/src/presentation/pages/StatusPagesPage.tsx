@@ -21,7 +21,7 @@ export function StatusPagesPage() {
   return (
     <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h6" fontWeight={700} fontFamily="'Bricolage Grotesque', sans-serif">
+        <Typography variant="h6" fontWeight={700} >
           Status Pages
         </Typography>
         <Button variant="contained" size="small" onClick={openCreate} sx={{ fontWeight: 700 }}>

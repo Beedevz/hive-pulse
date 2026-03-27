@@ -144,6 +144,9 @@ export function AlertsPage() {
   const showActive   = filter === 'all' || filter === 'active'
   const showResolved = filter === 'all' || filter === 'resolved'
   const listFlex     = selectedMonitorId ? '0 0 380px' : 1
+  const incidentCountLabel = activeIncidents.length > 1
+    ? `${activeIncidents.length} active incidents`
+    : `${activeIncidents.length} active incident`
 
   const handleSelect = (monitorId: string) =>
     setSelectedMonitorId((prev) => (prev === monitorId ? null : monitorId))
@@ -157,9 +160,7 @@ export function AlertsPage() {
           <Box>
             <Typography variant="h6" fontWeight={600} fontSize="1.0625rem">Alerts</Typography>
             <Typography fontSize="0.8125rem" color={activeIncidents.length > 0 ? 'error.main' : 'text.secondary'}>
-              {activeIncidents.length > 0
-                ? `${activeIncidents.length} active incident${activeIncidents.length > 1 ? 's' : ''}`
-                : 'No active incidents'}
+              {activeIncidents.length > 0 ? incidentCountLabel : 'No active incidents'}
             </Typography>
           </Box>
           <ToggleButtonGroup
@@ -224,14 +225,9 @@ export function AlertsPage() {
       </Box>
 
       {/* Right: monitor detail */}
-      {selectedMonitorId ? (
+      {selectedMonitorId && (
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', borderLeft: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
           <MonitorDetailSection key={selectedMonitorId} monitorId={selectedMonitorId} />
-        </Box>
-      ) : (
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.4, borderLeft: '1px solid', borderColor: 'divider' }}>
-          <Typography fontSize="1.75rem" sx={{ mb: 1 }}>◈</Typography>
-          <Typography fontSize="0.6875rem" color="text.secondary">Select an incident to view monitor details</Typography>
         </Box>
       )}
     </Box>

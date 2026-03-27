@@ -23,7 +23,7 @@ export function StatusPageCard({ statusPage, onEdit }: Readonly<Props>) {
       <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: statusPage.accent_color, flexShrink: 0 }} />
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography fontWeight={600} noWrap>{statusPage.title}</Typography>
-        <Typography fontSize="0.75rem" color="text.secondary" fontFamily="'IBM Plex Mono', monospace">
+        <Typography fontSize="0.75rem" color="text.secondary" >
           /s/{statusPage.slug}
         </Typography>
         <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5, flexWrap: 'wrap' }}>

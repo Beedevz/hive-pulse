@@ -44,7 +44,6 @@ function MetricCell({ label, value, valueColor, onClick, testId, valueTestId }: 
         fontSize="1.25rem"
         fontWeight={700}
         color={valueColor}
-        fontFamily="'IBM Plex Mono', monospace"
       >
         {value}
       </Typography>
