@@ -55,7 +55,7 @@ func (a *Aggregator) Tick(ctx context.Context) error {
 			return err
 		}
 
-		// 1b. UPSERT minutely buckets (last 2 minutes)
+		// 2. UPSERT minutely buckets (last 2 minutes)
 		if err := tx.Exec(`
 			INSERT INTO stats_minutely (monitor_id, minute, up_count, total_count, avg_ping_ms)
 			SELECT
@@ -75,7 +75,7 @@ func (a *Aggregator) Tick(ctx context.Context) error {
 			return err
 		}
 
-		// 2. UPSERT daily buckets (last 2 days)
+		// 3. UPSERT daily buckets (last 2 days)
 		if err := tx.Exec(`
 			INSERT INTO stats_daily (monitor_id, day, up_count, total_count, avg_ping_ms)
 			SELECT
@@ -95,22 +95,22 @@ func (a *Aggregator) Tick(ctx context.Context) error {
 			return err
 		}
 
-		// 3. Delete heartbeats older than 30 days
+		// 4. Delete heartbeats older than 30 days
 		if err := tx.Exec(`DELETE FROM heartbeats WHERE checked_at < NOW() - INTERVAL '30 days'`).Error; err != nil {
 			return err
 		}
 
-		// Delete minutely stats older than 7 days
+		// 4a. Delete minutely stats older than 7 days
 		if err := tx.Exec(`DELETE FROM stats_minutely WHERE minute < NOW() - INTERVAL '7 days'`).Error; err != nil {
 			return err
 		}
 
-		// 4. Delete stats_hourly older than 8 days
+		// 5. Delete stats_hourly older than 8 days
 		if err := tx.Exec(`DELETE FROM stats_hourly WHERE hour < NOW() - INTERVAL '8 days'`).Error; err != nil {
 			return err
 		}
 
-		// 5. Delete stats_daily older than 90 days
+		// 6. Delete stats_daily older than 90 days
 		if err := tx.Exec(`DELETE FROM stats_daily WHERE day < NOW() - INTERVAL '90 days'`).Error; err != nil {
 			return err
 		}
