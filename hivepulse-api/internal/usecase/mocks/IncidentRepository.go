@@ -64,6 +64,36 @@ func (_m *IncidentRepository) FindActive(ctx context.Context) ([]*domain.Inciden
 	return r0, r1
 }
 
+// FindByMonitorAndTimeRange provides a mock function with given fields: ctx, monitorID, since
+func (_m *IncidentRepository) FindByMonitorAndTimeRange(ctx context.Context, monitorID string, since time.Time) ([]*domain.Incident, error) {
+	ret := _m.Called(ctx, monitorID, since)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindByMonitorAndTimeRange")
+	}
+
+	var r0 []*domain.Incident
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, time.Time) ([]*domain.Incident, error)); ok {
+		return rf(ctx, monitorID, since)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, time.Time) []*domain.Incident); ok {
+		r0 = rf(ctx, monitorID, since)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*domain.Incident)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, time.Time) error); ok {
+		r1 = rf(ctx, monitorID, since)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // FindRecent provides a mock function with given fields: ctx, limit
 func (_m *IncidentRepository) FindRecent(ctx context.Context, limit int) ([]*domain.Incident, error) {
 	ret := _m.Called(ctx, limit)

@@ -234,3 +234,30 @@ func TestIncidentRepo_FindRecent(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, recent, 3)
 }
+
+func TestIncidentRepo_FindByMonitorAndTimeRange(t *testing.T) {
+	db := setupTestDB(t)
+	r := repo.NewIncidentRepo(db)
+	ctx := context.Background()
+
+	userRepo := repo.NewUserRepo(db)
+	user := &domain.User{Email: "rangetest@example.com", Name: "RangeTest", PasswordHash: "h", Role: domain.RoleAdmin}
+	require.NoError(t, userRepo.Create(ctx, user))
+
+	monitorRepo := repo.NewMonitorRepo(db)
+	m := &domain.Monitor{UserID: user.ID, Name: "RangeMon", CheckType: domain.CheckHTTP, Interval: 60, Timeout: 10, Enabled: true}
+	require.NoError(t, monitorRepo.Create(ctx, m))
+
+	since := time.Now().Add(-2 * time.Hour)
+	// incident within range
+	inc1 := &domain.Incident{MonitorID: m.ID, MonitorName: "RangeMon", StartedAt: time.Now().Add(-1 * time.Hour)}
+	require.NoError(t, r.Create(ctx, inc1))
+	// incident before range (should be excluded)
+	inc2 := &domain.Incident{MonitorID: m.ID, MonitorName: "RangeMon", StartedAt: time.Now().Add(-3 * time.Hour)}
+	require.NoError(t, r.Create(ctx, inc2))
+
+	results, err := r.FindByMonitorAndTimeRange(ctx, m.ID, since)
+	require.NoError(t, err)
+	require.Len(t, results, 1)
+	assert.Equal(t, inc1.StartedAt.Unix(), results[0].StartedAt.Unix())
+}

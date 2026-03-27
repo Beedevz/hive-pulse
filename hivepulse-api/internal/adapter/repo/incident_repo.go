@@ -101,6 +101,37 @@ func (r *IncidentRepo) FindResolved(ctx context.Context, limit int) ([]*domain.I
 	return toIncidentSlice(models), nil
 }
 
+func (r *IncidentRepo) FindByMonitorAndTimeRange(ctx context.Context, monitorID string, since time.Time) ([]*domain.Incident, error) {
+	type row struct {
+		ID         int64      `gorm:"column:id"`
+		MonitorID  string     `gorm:"column:monitor_id"`
+		StartedAt  time.Time  `gorm:"column:started_at"`
+		ResolvedAt *time.Time `gorm:"column:resolved_at"`
+		ErrorMsg   string     `gorm:"column:error_msg"`
+	}
+	var rows []row
+	if err := r.db.WithContext(ctx).Raw(`
+		SELECT id, monitor_id, started_at, resolved_at, error_msg
+		FROM incidents
+		WHERE monitor_id = ? AND started_at >= ?
+		ORDER BY started_at ASC`,
+		monitorID, since,
+	).Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+	result := make([]*domain.Incident, len(rows))
+	for i, rw := range rows {
+		result[i] = &domain.Incident{
+			ID:         rw.ID,
+			MonitorID:  rw.MonitorID,
+			StartedAt:  rw.StartedAt,
+			ResolvedAt: rw.ResolvedAt,
+			ErrorMsg:   rw.ErrorMsg,
+		}
+	}
+	return result, nil
+}
+
 func toIncidentSlice(models []incidentModel) []*domain.Incident {
 	result := make([]*domain.Incident, len(models))
 	for i, m := range models {

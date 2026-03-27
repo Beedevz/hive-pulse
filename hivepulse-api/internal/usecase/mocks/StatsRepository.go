@@ -76,6 +76,36 @@ func (_m *StatsRepository) GetHourly(ctx context.Context, monitorID string, sinc
 	return r0, r1
 }
 
+// GetMinutely provides a mock function with given fields: ctx, monitorID, since
+func (_m *StatsRepository) GetMinutely(ctx context.Context, monitorID string, since time.Time) ([]*domain.StatsBucket, error) {
+	ret := _m.Called(ctx, monitorID, since)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMinutely")
+	}
+
+	var r0 []*domain.StatsBucket
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, time.Time) ([]*domain.StatsBucket, error)); ok {
+		return rf(ctx, monitorID, since)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, time.Time) []*domain.StatsBucket); ok {
+		r0 = rf(ctx, monitorID, since)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*domain.StatsBucket)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, time.Time) error); ok {
+		r1 = rf(ctx, monitorID, since)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewStatsRepository creates a new instance of StatsRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewStatsRepository(t interface {

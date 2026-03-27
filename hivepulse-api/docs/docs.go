@@ -670,7 +670,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Time range: 24h, 7d, or 90d",
+                        "description": "Time range: 1h, 3h, 6h, 24h, 48h, 7d, 15d, 30d, or 90d",
                         "name": "range",
                         "in": "query",
                         "required": true
@@ -1583,6 +1583,17 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.DownPeriod": {
+            "type": "object",
+            "properties": {
+                "resolved_at": {
+                    "type": "string"
+                },
+                "started_at": {
+                    "type": "string"
+                }
+            }
+        },
         "domain.GeneralSettings": {
             "type": "object",
             "properties": {
@@ -1639,6 +1650,12 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/domain.StatsBucket"
+                    }
+                },
+                "down_periods": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.DownPeriod"
                     }
                 },
                 "uptime_pct": {

@@ -33,7 +33,20 @@ export const monitorHandlers = [
   ),
   http.delete('http://localhost:8080/api/v1/monitors/:id', () => new HttpResponse(null, { status: 204 })),
   http.get('http://localhost:8080/api/v1/monitors/:id/stats', () =>
-    HttpResponse.json({ uptime_pct: 100, avg_ping_ms: 42, buckets: [] })
+    HttpResponse.json({
+      uptime_pct: 97.5,
+      avg_ping_ms: 42,
+      buckets: [
+        { time: new Date(Date.now() - 3_600_000).toISOString(), up_count: 1, total_count: 1, avg_ping_ms: 40 },
+        { time: new Date(Date.now() - 1_800_000).toISOString(), up_count: 1, total_count: 1, avg_ping_ms: 44 },
+      ],
+      down_periods: [
+        {
+          started_at: new Date(Date.now() - 3_000_000).toISOString(),
+          resolved_at: new Date(Date.now() - 2_700_000).toISOString(),
+        },
+      ],
+    })
   ),
   http.get('http://localhost:8080/api/v1/monitors/:id/heartbeats', () => {
     return HttpResponse.json({

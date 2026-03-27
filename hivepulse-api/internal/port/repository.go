@@ -54,9 +54,13 @@ type IncidentRepository interface {
 	FindRecent(ctx context.Context, limit int) ([]*domain.Incident, error)
 	// FindResolved returns the last `limit` resolved incidents, ordered by resolved_at DESC.
 	FindResolved(ctx context.Context, limit int) ([]*domain.Incident, error)
+	// FindByMonitorAndTimeRange returns all incidents for monitorID that started at or after since,
+	// ordered by started_at ASC. Includes active (unresolved) incidents.
+	FindByMonitorAndTimeRange(ctx context.Context, monitorID string, since time.Time) ([]*domain.Incident, error)
 }
 
 type StatsRepository interface {
+	GetMinutely(ctx context.Context, monitorID string, since time.Time) ([]*domain.StatsBucket, error)
 	GetHourly(ctx context.Context, monitorID string, since time.Time) ([]*domain.StatsBucket, error)
 	GetDaily(ctx context.Context, monitorID string, since time.Time) ([]*domain.StatsBucket, error)
 }

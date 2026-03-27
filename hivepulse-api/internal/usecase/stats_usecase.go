@@ -10,36 +10,68 @@ import (
 )
 
 type StatsUsecase struct {
-	repo port.StatsRepository
+	statsRepo    port.StatsRepository
+	incidentRepo port.IncidentRepository
 }
 
-func NewStatsUsecase(repo port.StatsRepository) *StatsUsecase {
-	return &StatsUsecase{repo: repo}
+func NewStatsUsecase(statsRepo port.StatsRepository, incidentRepo port.IncidentRepository) *StatsUsecase {
+	return &StatsUsecase{statsRepo: statsRepo, incidentRepo: incidentRepo}
 }
 
 func (u *StatsUsecase) GetStats(ctx context.Context, monitorID, rangeParam string) (*domain.StatsResponse, error) {
 	var buckets []*domain.StatsBucket
 	var err error
+	var since time.Time
 	now := time.Now()
 
 	switch rangeParam {
+	case "1h":
+		since = now.Add(-1 * time.Hour)
+		buckets, err = u.statsRepo.GetMinutely(ctx, monitorID, since)
+	case "3h":
+		since = now.Add(-3 * time.Hour)
+		buckets, err = u.statsRepo.GetMinutely(ctx, monitorID, since)
+	case "6h":
+		since = now.Add(-6 * time.Hour)
+		buckets, err = u.statsRepo.GetMinutely(ctx, monitorID, since)
 	case "24h":
-		buckets, err = u.repo.GetHourly(ctx, monitorID, now.Add(-24*time.Hour))
+		since = now.Add(-24 * time.Hour)
+		buckets, err = u.statsRepo.GetMinutely(ctx, monitorID, since)
+	case "48h":
+		since = now.Add(-48 * time.Hour)
+		buckets, err = u.statsRepo.GetHourly(ctx, monitorID, since)
 	case "7d":
-		buckets, err = u.repo.GetHourly(ctx, monitorID, now.Add(-7*24*time.Hour))
+		since = now.Add(-7 * 24 * time.Hour)
+		buckets, err = u.statsRepo.GetHourly(ctx, monitorID, since)
+	case "15d":
+		since = now.Add(-15 * 24 * time.Hour)
+		buckets, err = u.statsRepo.GetHourly(ctx, monitorID, since)
 	case "30d":
-		buckets, err = u.repo.GetDaily(ctx, monitorID, now.AddDate(0, 0, -30))
+		since = now.AddDate(0, 0, -30)
+		buckets, err = u.statsRepo.GetDaily(ctx, monitorID, since)
 	case "90d":
-		buckets, err = u.repo.GetDaily(ctx, monitorID, now.AddDate(0, 0, -90))
+		since = now.AddDate(0, 0, -90)
+		buckets, err = u.statsRepo.GetDaily(ctx, monitorID, since)
 	default:
-		return nil, fmt.Errorf("invalid range %q: must be 24h, 7d, 30d, or 90d", rangeParam)
+		return nil, fmt.Errorf("invalid range %q: must be 1h, 3h, 6h, 24h, 48h, 7d, 15d, 30d, or 90d", rangeParam)
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	var totalUp, totalAll int
-	var sumPing int
+	incidents, err := u.incidentRepo.FindByMonitorAndTimeRange(ctx, monitorID, since)
+	if err != nil {
+		return nil, err
+	}
+	downPeriods := make([]*domain.DownPeriod, len(incidents))
+	for i, inc := range incidents {
+		downPeriods[i] = &domain.DownPeriod{
+			StartedAt:  inc.StartedAt,
+			ResolvedAt: inc.ResolvedAt,
+		}
+	}
+
+	var totalUp, totalAll, sumPing int
 	for _, b := range buckets {
 		totalUp += b.UpCount
 		totalAll += b.TotalCount
@@ -55,8 +87,9 @@ func (u *StatsUsecase) GetStats(ctx context.Context, monitorID, rangeParam strin
 	}
 
 	return &domain.StatsResponse{
-		UptimePct: uptimePct,
-		AvgPingMS: avgPing,
-		Buckets:   buckets,
+		UptimePct:   uptimePct,
+		AvgPingMS:   avgPing,
+		Buckets:     buckets,
+		DownPeriods: downPeriods,
 	}, nil
 }

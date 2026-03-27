@@ -75,7 +75,7 @@ func main() {
 	}
 
 	statsRepo := repo.NewStatsRepo(db)
-	statsUC := usecase.NewStatsUsecase(statsRepo)
+	statsUC := usecase.NewStatsUsecase(statsRepo, incidentRepo)
 
 	aggregator := infra.NewAggregator(db)
 	go aggregator.Start(ctx)

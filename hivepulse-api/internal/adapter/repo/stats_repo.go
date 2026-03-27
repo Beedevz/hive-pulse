@@ -41,6 +41,34 @@ func (r *StatsRepo) GetHourly(ctx context.Context, monitorID string, since time.
 	return out, nil
 }
 
+func (r *StatsRepo) GetMinutely(ctx context.Context, monitorID string, since time.Time) ([]*domain.StatsBucket, error) {
+	type row struct {
+		Minute     time.Time
+		UpCount    int
+		TotalCount int
+		AvgPingMS  int
+	}
+	var rows []row
+	err := r.db.WithContext(ctx).Raw(`
+		SELECT minute AS minute, up_count, total_count, avg_ping_ms
+		FROM stats_minutely
+		WHERE monitor_id = ? AND minute >= ?
+		ORDER BY minute ASC`, monitorID, since).Scan(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*domain.StatsBucket, len(rows))
+	for i, rw := range rows {
+		out[i] = &domain.StatsBucket{
+			Time:       rw.Minute,
+			UpCount:    rw.UpCount,
+			TotalCount: rw.TotalCount,
+			AvgPingMS:  rw.AvgPingMS,
+		}
+	}
+	return out, nil
+}
+
 func (r *StatsRepo) GetDaily(ctx context.Context, monitorID string, since time.Time) ([]*domain.StatsBucket, error) {
 	type row struct {
 		Day        time.Time

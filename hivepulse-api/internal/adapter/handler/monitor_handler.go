@@ -292,7 +292,7 @@ func (h *MonitorHandler) Heartbeats(c *gin.Context) {
 // @Tags         monitors
 // @Security     Bearer
 // @Param        id    path  string true  "Monitor ID"
-// @Param        range query string true  "Time range: 24h, 7d, or 90d"
+// @Param        range query string true  "Time range: 1h, 3h, 6h, 24h, 48h, 7d, 15d, 30d, or 90d"
 // @Produce      json
 // @Success      200 {object} domain.StatsResponse
 // @Failure      400 {object} map[string]string

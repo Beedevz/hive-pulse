@@ -5,8 +5,6 @@ import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
-import Tabs from '@mui/material/Tabs'
-import Tab from '@mui/material/Tab'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import type { ChannelType, MonitorChannelAssignment } from '../../domain/notification'
@@ -216,7 +214,7 @@ interface MonitorDetailSectionProps {
 }
 
 export function MonitorDetailSection({ monitorId, onEdit, onDelete }: Readonly<MonitorDetailSectionProps>) {
-  const [chartRange, setChartRange] = useState<'24h' | '7d'>('24h')
+  const [chartRange, setChartRange] = useState<StatsRange>('1h')
   const [tagAnchor, setTagAnchor] = useState<null | HTMLElement>(null)
   const { data: me } = useMe()
   const { data: monitorTags = [] } = useMonitorTags(monitorId)
@@ -233,7 +231,7 @@ export function MonitorDetailSection({ monitorId, onEdit, onDelete }: Readonly<M
   const { data: stats24h } = useStats(monitorId, '24h')
   const { data: stats30d } = useStats(monitorId, '30d')
   const { data: heatmapStats, isLoading: heatmapLoading, isError: heatmapError } = useStats(monitorId, '90d')
-  const { data: chartStats, isLoading: chartLoading, isError: chartError } = useStats(monitorId, chartRange as StatsRange)
+  const { data: chartStats, isLoading: chartLoading, isError: chartError } = useStats(monitorId, chartRange)
 
   if (monitorLoading) {
     return (
@@ -411,22 +409,16 @@ export function MonitorDetailSection({ monitorId, onEdit, onDelete }: Readonly<M
             p: 2.5,
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-            <Typography variant="subtitle1" fontWeight={600} color="text.primary">
-              Response Time
-            </Typography>
-            <Tabs
-              value={chartRange}
-              onChange={(_, v) => setChartRange(v)}
-              sx={{ minHeight: 32, '& .MuiTab-root': { minHeight: 32, py: 0, px: 1.5, fontSize: '0.75rem' } }}
-            >
-              <Tab label="24h" value="24h" />
-              <Tab label="7d" value="7d" />
-            </Tabs>
-          </Box>
           {chartLoading && <CircularProgress size={24} />}
           {chartError && <Alert severity="error">Failed to load response time data.</Alert>}
-          {chartStats && <ResponseTimeChart buckets={chartStats.buckets} range={chartRange} />}
+          {chartStats && (
+            <ResponseTimeChart
+              buckets={chartStats.buckets}
+              downPeriods={chartStats.down_periods ?? []}
+              range={chartRange}
+              onRangeChange={setChartRange}
+            />
+          )}
         </Box>
 
         {me?.role === 'admin' && monitorId && (
