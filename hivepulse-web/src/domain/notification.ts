@@ -16,6 +16,7 @@ export interface NotificationLog {
   id: number
   channel_id: string
   monitor_id: string
+  monitor_name: string   // empty string if monitor was deleted
   event: NotificationEvent
   status: 'sent' | 'failed'
   error_msg: string
