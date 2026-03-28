@@ -19,6 +19,23 @@ function getStatusColor(status: string, isDark: boolean): string {
   return isDark ? pair[0] : pair[1]
 }
 
+const TYPE_COLORS: Record<string, { bg: string; color: string }> = {
+  http:  { bg: '#1e3a5f', color: '#6BA3F7' },
+  tcp:   { bg: '#2d1f5e', color: '#a78bfa' },
+  ping:  { bg: '#1a3a2a', color: '#4ADE80' },
+  dns:   { bg: '#3a2a1a', color: '#F5A623' },
+}
+
+function getSubLabel(m: Monitor): string {
+  const interval = `${m.interval}s`
+  switch (m.check_type) {
+    case 'tcp':  return `${m.host}:${m.port} · ${interval}`
+    case 'ping': return `${m.ping_host} · ${m.packet_count ?? 3}x · ${interval}`
+    case 'dns':  return `${m.dns_host} · ${m.record_type} · ${interval}`
+    default:     return `${m.url} · ${interval}`
+  }
+}
+
 interface MonitorListItemProps {
   monitor: Monitor
   isSelected: boolean
@@ -37,13 +54,6 @@ export const MonitorListItem = forwardRef<HTMLDivElement, MonitorListItemProps>(
     const blocks = heartbeats.length > 0
       ? heartbeats.map((h) => h.status as 'up' | 'down' | 'unknown')
       : new Array(48).fill('unknown' as const)
-    const avgPing = heartbeats.length > 0
-      ? Math.round(heartbeats.reduce((s, h) => s + h.ping_ms, 0) / heartbeats.length)
-      : null
-
-    const subLabel = `${monitor.check_type.toUpperCase()} · ${monitor.interval}s`
-      + (avgPing !== null ? ` · avg ${avgPing}ms` : '')
-
     return (
       <Box
         ref={ref}
@@ -87,9 +97,29 @@ export const MonitorListItem = forwardRef<HTMLDivElement, MonitorListItemProps>(
           </Typography>
         </Box>
 
-        <Typography fontSize="0.625rem" color="text.secondary" noWrap sx={{ mb: 0.5 }}>
-          {subLabel}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+          <Box
+            component="span"
+            sx={{
+              fontSize: '0.625rem',
+              fontWeight: 700,
+              px: '5px',
+              py: '1px',
+              borderRadius: '4px',
+              fontFamily: 'monospace',
+              letterSpacing: '0.5px',
+              flexShrink: 0,
+              mr: '5px',
+              bgcolor: TYPE_COLORS[monitor.check_type]?.bg ?? '#1e2235',
+              color:   TYPE_COLORS[monitor.check_type]?.color ?? '#94a3b8',
+            }}
+          >
+            {monitor.check_type.toUpperCase()}
+          </Box>
+          <Typography fontSize="0.625rem" color="text.secondary" noWrap>
+            {getSubLabel(monitor)}
+          </Typography>
+        </Box>
 
         <Box sx={{ height: 5, overflow: 'hidden' }}>
           <UptimeBar blocks={blocks} />
