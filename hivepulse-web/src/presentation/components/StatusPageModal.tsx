@@ -69,14 +69,14 @@ export function StatusPageModal({ open, onClose, existing }: Readonly<Props>) {
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>{existing ? 'Edit Status Page' : 'New Status Page'}</DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: '16px !important' }}>
-        <TextField label="Title" value={title} onChange={(e) => setTitle(e.target.value)} required fullWidth size="small" inputProps={{ 'aria-label': 'title' }} />
+        <TextField label="Title" value={title} onChange={(e) => setTitle(e.target.value)} required fullWidth size="small" slotProps={{ htmlInput: { 'aria-label': 'title' } }} />
         <Box>
           <TextField
             label="Slug"
             value={slug}
             onChange={(e) => { setSlug(e.target.value); setSlugEdited(true) }}
             fullWidth size="small"
-            inputProps={{ 'aria-label': 'slug' }}
+            slotProps={{ htmlInput: { 'aria-label': 'slug' } }}
           />
           <Typography fontSize="0.75rem" sx={{ mt: 0.5 }}>
             <a href={`${BASE_URL}/s/${encodeURIComponent(slug)}`} target="_blank" rel="noreferrer">Preview</a>

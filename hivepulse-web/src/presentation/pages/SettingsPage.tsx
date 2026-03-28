@@ -63,7 +63,7 @@ function SMTPForm() {
             value={form.port}
             onChange={set('port')}
             sx={{ width: 100 }}
-            inputProps={{ min: 1, max: 65535 }}
+            slotProps={{ htmlInput: { min: 1, max: 65535 } }}
           />
         </Box>
         <TextField

@@ -66,7 +66,7 @@ export function ChannelModal({ open, onClose, onSubmit, channel, defaultType = '
             value={name}
             onChange={e => setName(e.target.value)}
             fullWidth
-            inputProps={{ 'aria-label': 'Name' }}
+            slotProps={{ htmlInput: { 'aria-label': 'Name' } }}
           />
           <TextField
             select
@@ -86,7 +86,7 @@ export function ChannelModal({ open, onClose, onSubmit, channel, defaultType = '
               value={emailTo}
               onChange={e => setEmailTo(e.target.value)}
               fullWidth
-              inputProps={{ 'aria-label': 'To' }}
+              slotProps={{ htmlInput: { 'aria-label': 'To' } }}
             />
           )}
 
@@ -97,7 +97,7 @@ export function ChannelModal({ open, onClose, onSubmit, channel, defaultType = '
                 value={webhookUrl}
                 onChange={e => setWebhookUrl(e.target.value)}
                 fullWidth
-                inputProps={{ 'aria-label': 'URL' }}
+                slotProps={{ htmlInput: { 'aria-label': 'URL' } }}
               />
               <TextField
                 label="Secret"
@@ -106,7 +106,7 @@ export function ChannelModal({ open, onClose, onSubmit, channel, defaultType = '
                 onChange={e => setWebhookSecret(e.target.value)}
                 fullWidth
                 placeholder={channel?.config.secret ? '••••••••' : ''}
-                inputProps={{ 'aria-label': 'Secret' }}
+                slotProps={{ htmlInput: { 'aria-label': 'Secret' } }}
               />
             </>
           )}
@@ -119,7 +119,7 @@ export function ChannelModal({ open, onClose, onSubmit, channel, defaultType = '
               onChange={e => setSlackUrl(e.target.value)}
               fullWidth
               placeholder={channel?.config.webhook_url ? '••••••••' : ''}
-              inputProps={{ 'aria-label': 'Webhook URL' }}
+              slotProps={{ htmlInput: { 'aria-label': 'Webhook URL' } }}
             />
           )}
 
@@ -129,7 +129,7 @@ export function ChannelModal({ open, onClose, onSubmit, channel, defaultType = '
             value={remindInterval}
             onChange={e => setRemindInterval(e.target.value)}
             fullWidth
-            inputProps={{ 'aria-label': 'Remind Interval (minutes)', min: 0 }}
+            slotProps={{ htmlInput: { 'aria-label': 'Remind Interval (minutes)', min: 0 } }}
           />
 
           <FormControlLabel

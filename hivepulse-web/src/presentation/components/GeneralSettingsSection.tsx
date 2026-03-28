@@ -43,7 +43,7 @@ export function GeneralSettingsSection() {
           onChange={(e) => setTimezone(e.target.value)}
           size="small"
           fullWidth
-          inputProps={{ 'aria-label': 'timezone' }}
+          slotProps={{ input: { 'aria-label': 'timezone' } }}
         >
           {TIMEZONES.map((tz) => (
             <MenuItem key={tz} value={tz}>{tz}</MenuItem>
@@ -58,7 +58,7 @@ export function GeneralSettingsSection() {
           onChange={(e) => setFontPair(e.target.value as FontPair)}
           size="small"
           fullWidth
-          inputProps={{ 'aria-label': 'font' }}
+          slotProps={{ input: { 'aria-label': 'font' } }}
         >
           {(Object.keys(fontPairMeta) as FontPair[]).map((key) => (
             <MenuItem key={key} value={key}>

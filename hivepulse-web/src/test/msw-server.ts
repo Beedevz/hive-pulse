@@ -4,6 +4,7 @@ import { userHandlers } from './handlers/users'
 import { notificationHandlers } from './handlers/notifications'
 import { tagHandlers } from './handlers/tags'
 import { statusPageHandlers } from './handlers/statusPages'
+import { incidentHandlers } from './handlers/incidents'
 
 export const server = setupServer(
   ...monitorHandlers,
@@ -11,4 +12,5 @@ export const server = setupServer(
   ...notificationHandlers,
   ...tagHandlers,
   ...statusPageHandlers,
+  ...incidentHandlers,
 )

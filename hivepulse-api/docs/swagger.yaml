@@ -61,6 +61,32 @@ definitions:
       uptime_pct:
         type: number
     type: object
+  handler.incidentListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/handler.incidentResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+  handler.incidentResponse:
+    properties:
+      duration_s:
+        type: integer
+      error_msg:
+        type: string
+      id:
+        type: integer
+      monitor_id:
+        type: string
+      monitor_name:
+        type: string
+      resolved_at:
+        type: string
+      started_at:
+        type: string
+    type: object
   handler.logResponse:
     properties:
       channel_id:
@@ -382,7 +408,16 @@ paths:
         in: query
         name: status
         type: string
-      - default: 100
+      - description: Search by monitor name (case-insensitive)
+        in: query
+        name: q
+        type: string
+      - default: 0
+        description: Pagination offset
+        in: query
+        name: offset
+        type: integer
+      - default: 20
         description: Max results
         in: query
         name: limit
@@ -393,8 +428,7 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/handler.incidentListResponse'
       security:
       - Bearer: []
       summary: List incidents

@@ -1,14 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import TextField from '@mui/material/TextField'
+import Pagination from '@mui/material/Pagination'
+import InputAdornment from '@mui/material/InputAdornment'
+import SearchIcon from '@mui/icons-material/Search'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
-import { useIncidents } from '../../application/useIncidents'
+import { useIncidents, PAGE_SIZE } from '../../application/useIncidents'
 import type { IncidentFilter } from '../../application/useIncidents'
 import type { Incident } from '../../domain/incident'
 import { MonitorDetailSection } from '../components/MonitorDetailSection'
@@ -136,17 +140,51 @@ function ResolvedIncidentCard({ inc, selected, onClick }: Readonly<IncidentCardP
 export function AlertsPage() {
   const [filter, setFilter] = useState<IncidentFilter>('all')
   const [selectedMonitorId, setSelectedMonitorId] = useState<string | null>(null)
-  const { data: activeData,   isLoading: loadingActive }   = useIncidents('active')
-  const { data: resolvedData, isLoading: loadingResolved } = useIncidents('resolved')
+  const [q, setQ] = useState('')
+  const [debouncedQ, setDebouncedQ] = useState('')
+  const [activePage, setActivePage] = useState(1)
+  const [resolvedPage, setResolvedPage] = useState(1)
 
-  const activeIncidents   = activeData?.data ?? []
+  // Debounce search input (300ms) — resets pages inline to avoid setState-in-effect
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const handleSearchChange = useCallback((value: string) => {
+    setQ(value)
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setDebouncedQ(value)
+      setActivePage(1)
+      setResolvedPage(1)
+    }, 300)
+  }, [])
+
+  const { data: activeData, isLoading: loadingActive } = useIncidents('active', debouncedQ, activePage)
+  const { data: resolvedData, isLoading: loadingResolved } = useIncidents('resolved', debouncedQ, resolvedPage)
+
+  // Accumulate active items across Load More pages (setState-during-render pattern)
+  const [activeItems, setActiveItems] = useState<Incident[]>([])
+  const [prevActiveKey, setPrevActiveKey] = useState('')
+  const activeKey = `${debouncedQ}:${activePage}:${activeData?.total}`
+  if (activeKey !== prevActiveKey && activeData) {
+    setPrevActiveKey(activeKey)
+    const newItems = activeData.data ?? []
+    if (activePage === 1) {
+      setActiveItems(newItems)
+    } else {
+      setActiveItems((prev) => [...prev, ...newItems])
+    }
+  }
+
   const resolvedIncidents = resolvedData?.data ?? []
-  const showActive   = filter === 'all' || filter === 'active'
+  const resolvedTotal = resolvedData?.total ?? 0
+  const resolvedPageCount = Math.max(1, Math.ceil(resolvedTotal / PAGE_SIZE))
+  const hasMoreActive = activeData ? activeItems.length < activeData.total : false
+
+  const showActive = filter === 'all' || filter === 'active'
   const showResolved = filter === 'all' || filter === 'resolved'
-  const listFlex     = selectedMonitorId ? '0 0 380px' : 1
-  const incidentCountLabel = activeIncidents.length > 1
-    ? `${activeIncidents.length} active incidents`
-    : `${activeIncidents.length} active incident`
+  const listFlex = selectedMonitorId ? '0 0 380px' : 1
+  const incidentCountLabel = activeItems.length > 1
+    ? `${activeItems.length} active incidents`
+    : `${activeItems.length} active incident`
 
   const handleSelect = (monitorId: string) =>
     setSelectedMonitorId((prev) => (prev === monitorId ? null : monitorId))
@@ -159,26 +197,44 @@ export function AlertsPage() {
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 3, py: 2, borderBottom: '1px solid', borderColor: 'divider', flexShrink: 0 }}>
           <Box>
             <Typography variant="h6" fontWeight={600} fontSize="1.0625rem">Alerts</Typography>
-            <Typography fontSize="0.8125rem" color={activeIncidents.length > 0 ? 'error.main' : 'text.secondary'}>
-              {activeIncidents.length > 0 ? incidentCountLabel : 'No active incidents'}
+            <Typography fontSize="0.8125rem" color={activeItems.length > 0 ? 'error.main' : 'text.secondary'}>
+              {activeItems.length > 0 ? incidentCountLabel : 'No active incidents'}
             </Typography>
           </Box>
-          <ToggleButtonGroup
-            value={filter}
-            exclusive
-            onChange={(_, v) => { if (v) setFilter(v) }}
-            size="small"
-            sx={{ '& .MuiToggleButton-root': { textTransform: 'none', fontSize: '0.75rem', px: 1.5, py: 0.5, color: 'text.secondary', borderColor: 'divider' } }}
-          >
-            <ToggleButton value="all">All</ToggleButton>
-            <ToggleButton value="active" aria-label="Active">
-              Active
-              {activeIncidents.length > 0 && (
-                <Chip label={activeIncidents.length} size="small" color="error" sx={{ ml: 0.75, height: 18, fontSize: '0.6875rem', fontWeight: 700 }} />
-              )}
-            </ToggleButton>
-            <ToggleButton value="resolved" aria-label="Resolved">Resolved</ToggleButton>
-          </ToggleButtonGroup>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <TextField
+              size="small"
+              placeholder="Search monitors…"
+              value={q}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+              sx={{ maxWidth: 180, '& .MuiInputBase-input': { fontSize: '0.8125rem' } }}
+            />
+            <ToggleButtonGroup
+              value={filter}
+              exclusive
+              onChange={(_, v) => { if (v) setFilter(v) }}
+              size="small"
+              sx={{ '& .MuiToggleButton-root': { textTransform: 'none', fontSize: '0.75rem', px: 1.5, py: 0.5, color: 'text.secondary', borderColor: 'divider' } }}
+            >
+              <ToggleButton value="all">All</ToggleButton>
+              <ToggleButton value="active" aria-label="Active">
+                Active
+                {activeItems.length > 0 && (
+                  <Chip label={activeItems.length} size="small" color="error" sx={{ ml: 0.75, height: 18, fontSize: '0.6875rem', fontWeight: 700 }} />
+                )}
+              </ToggleButton>
+              <ToggleButton value="resolved" aria-label="Resolved">Resolved</ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
         </Box>
 
         {/* List */}
@@ -188,19 +244,32 @@ export function AlertsPage() {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                 <WarningAmberIcon sx={{ fontSize: 13, color: 'error.main' }} />
                 <Typography fontSize="0.6875rem" fontWeight={700} color="error.main" sx={{ textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  Active ({activeIncidents.length})
+                  Active ({activeItems.length})
                 </Typography>
               </Box>
               {loadingActive && <Typography color="text.secondary" fontSize="0.875rem">Loading…</Typography>}
-              {!loadingActive && activeIncidents.length === 0 && (
+              {!loadingActive && activeItems.length === 0 && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 1.5, borderRadius: 2, border: '1px solid', borderColor: 'divider', bgcolor: 'background.default' }}>
                   <CheckCircleOutlineIcon sx={{ fontSize: 15, color: 'success.main' }} />
                   <Typography fontSize="0.875rem" color="text.secondary">All monitors are up.</Typography>
                 </Box>
               )}
-              {!loadingActive && activeIncidents.map((inc) => (
+              {!loadingActive && activeItems.map((inc) => (
                 <ActiveIncidentCard key={inc.id} inc={inc} selected={selectedMonitorId === inc.monitor_id} onClick={() => handleSelect(inc.monitor_id)} />
               ))}
+              {!loadingActive && hasMoreActive && (
+                <Box
+                  component="button"
+                  onClick={() => setActivePage((p) => p + 1)}
+                  sx={{
+                    width: '100%', py: 0.75, borderRadius: 1, border: '1px dashed',
+                    borderColor: 'divider', bgcolor: 'transparent', color: 'text.secondary',
+                    fontSize: '0.8125rem', cursor: 'pointer', '&:hover': { borderColor: 'text.secondary' },
+                  }}
+                >
+                  Load more active…
+                </Box>
+              )}
             </Box>
           )}
 
@@ -209,7 +278,7 @@ export function AlertsPage() {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                 <CheckCircleOutlineIcon sx={{ fontSize: 13, color: 'success.main' }} />
                 <Typography fontSize="0.6875rem" fontWeight={700} color="success.main" sx={{ textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  Resolved ({resolvedIncidents.length})
+                  Resolved ({resolvedTotal})
                 </Typography>
               </Box>
               {loadingResolved && <Typography color="text.secondary" fontSize="0.875rem">Loading…</Typography>}
@@ -219,6 +288,17 @@ export function AlertsPage() {
               {!loadingResolved && resolvedIncidents.map((inc) => (
                 <ResolvedIncidentCard key={inc.id} inc={inc} selected={selectedMonitorId === inc.monitor_id} onClick={() => handleSelect(inc.monitor_id)} />
               ))}
+              {!loadingResolved && resolvedTotal > PAGE_SIZE && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1.5 }}>
+                  <Pagination
+                    count={resolvedPageCount}
+                    page={resolvedPage}
+                    onChange={(_, p) => setResolvedPage(p)}
+                    size="small"
+                    sx={{ '& .MuiPaginationItem-root': { fontSize: '0.75rem' } }}
+                  />
+                </Box>
+              )}
             </Box>
           )}
         </Box>

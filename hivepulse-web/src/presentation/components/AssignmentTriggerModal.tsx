@@ -52,7 +52,7 @@ export function AssignmentTriggerModal({ assignment, monitorId, open, onClose }:
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: '16px !important' }}>
         <TextField
           label="Cooldown (minutes) — 0 disables"
-          inputProps={{ 'aria-label': 'cooldown', type: 'number', min: 0 }}
+          slotProps={{ htmlInput: { 'aria-label': 'cooldown', type: 'number', min: 0 } }}
           value={cooldown}
           onChange={(e) => setCooldown(e.target.value)}
           size="small"
@@ -62,7 +62,7 @@ export function AssignmentTriggerModal({ assignment, monitorId, open, onClose }:
           <Typography fontSize="0.75rem" color="text.secondary" mb={0.5}>Schedule</Typography>
           <RadioGroup value={scheduleMode} onChange={(_, v) => setScheduleMode(v as 'always' | 'custom')}>
             <FormControlLabel value="always" control={<Radio size="small" />} label="Always" />
-            <FormControlLabel value="custom" control={<Radio size="small" inputProps={{ 'aria-label': 'Custom' }} />} label="Custom schedule" />
+            <FormControlLabel value="custom" control={<Radio size="small" slotProps={{ input: { 'aria-label': 'Custom' } }} />} label="Custom schedule" />
           </RadioGroup>
         </Box>
         {scheduleMode === 'custom' && (
@@ -78,8 +78,8 @@ export function AssignmentTriggerModal({ assignment, monitorId, open, onClose }:
               ))}
             </FormGroup>
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <TextField label="Start" inputProps={{ 'aria-label': 'start', type: 'time' }} value={start} onChange={(e) => setStart(e.target.value)} size="small" />
-              <TextField label="End" inputProps={{ 'aria-label': 'end', type: 'time' }} value={end} onChange={(e) => setEnd(e.target.value)} size="small" />
+              <TextField label="Start" slotProps={{ htmlInput: { 'aria-label': 'start', type: 'time' } }} value={start} onChange={(e) => setStart(e.target.value)} size="small" />
+              <TextField label="End" slotProps={{ htmlInput: { 'aria-label': 'end', type: 'time' } }} value={end} onChange={(e) => setEnd(e.target.value)} size="small" />
             </Box>
             {generalSettings && (
               <Typography fontSize="0.6875rem" color="text.disabled">

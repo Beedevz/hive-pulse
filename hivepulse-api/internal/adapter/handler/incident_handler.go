@@ -49,32 +49,46 @@ func toIncidentResponse(inc *domain.Incident) incidentResponse {
 	}
 }
 
+type incidentListResponse struct {
+	Data  []incidentResponse `json:"data"`
+	Total int                `json:"total"`
+}
+
 // List godoc
 // @Summary      List incidents
 // @Tags         incidents
 // @Security     Bearer
 // @Param        status query string false "Filter: active|resolved|all" default(all)
-// @Param        limit  query int    false "Max results" default(100)
+// @Param        q      query string false "Search by monitor name (case-insensitive)"
+// @Param        offset query int    false "Pagination offset" default(0)
+// @Param        limit  query int    false "Max results" default(20)
 // @Produce      json
-// @Success      200 {object} map[string]interface{}
+// @Success      200 {object} incidentListResponse
 // @Router       /incidents [get]
 func (h *IncidentHandler) List(c *gin.Context) {
 	status := c.DefaultQuery("status", "all")
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
+	q := c.Query("q")
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
 	if limit < 1 || limit > 200 {
-		limit = 100
+		limit = 20
+	}
+	if offset < 0 {
+		offset = 0
 	}
 
 	var incidents []*domain.Incident
+	var total int
 	var err error
 
+	ctx := c.Request.Context()
 	switch status {
 	case "active":
-		incidents, err = h.repo.FindActive(c.Request.Context())
+		incidents, total, err = h.repo.FindActive(ctx, q, offset, limit)
 	case "resolved":
-		incidents, err = h.repo.FindResolved(c.Request.Context(), limit)
+		incidents, total, err = h.repo.FindResolved(ctx, q, offset, limit)
 	default:
-		incidents, err = h.repo.FindRecent(c.Request.Context(), limit)
+		incidents, total, err = h.repo.FindRecent(ctx, q, offset, limit)
 	}
 
 	if err != nil {
@@ -86,5 +100,5 @@ func (h *IncidentHandler) List(c *gin.Context) {
 	for i, inc := range incidents {
 		data[i] = toIncidentResponse(inc)
 	}
-	c.JSON(http.StatusOK, gin.H{"data": data, "total": len(data)})
+	c.JSON(http.StatusOK, incidentListResponse{Data: data, Total: total})
 }

@@ -56,4 +56,47 @@ describe('MonitorListItem', () => {
     fireEvent.click(screen.getByText('Test API'))
     expect(mockNavigate).toHaveBeenCalledWith('/monitor/monitor-1')
   })
+
+  it('shows type chip for HTTP monitor', () => {
+    render(<MonitorListItem monitor={baseMonitor} isSelected={false} />, { wrapper })
+    expect(screen.getByText('HTTP')).toBeInTheDocument()
+  })
+
+  it('shows host:port sub-label for TCP monitor', () => {
+    const tcpMonitor: Monitor = {
+      ...baseMonitor,
+      check_type: 'tcp',
+      host: 'db.acme.com',
+      port: 5432,
+    }
+    render(<MonitorListItem monitor={tcpMonitor} isSelected={false} />, { wrapper })
+    expect(screen.getByText('db.acme.com:5432', { exact: false })).toBeInTheDocument()
+    expect(screen.getByText('TCP')).toBeInTheDocument()
+  })
+
+  it('shows ping_host · Nx · interval for PING monitor', () => {
+    const pingMonitor: Monitor = {
+      ...baseMonitor,
+      check_type: 'ping',
+      ping_host: '10.0.0.5',
+      packet_count: 4,
+      interval: 60,
+    }
+    render(<MonitorListItem monitor={pingMonitor} isSelected={false} />, { wrapper })
+    expect(screen.getByText('10.0.0.5 · 4x · 60s', { exact: false })).toBeInTheDocument()
+    expect(screen.getByText('PING')).toBeInTheDocument()
+  })
+
+  it('shows dns_host · record_type for DNS monitor', () => {
+    const dnsMonitor: Monitor = {
+      ...baseMonitor,
+      check_type: 'dns',
+      dns_host: 'cloudflare.com',
+      record_type: 'A',
+      interval: 60,
+    }
+    render(<MonitorListItem monitor={dnsMonitor} isSelected={false} />, { wrapper })
+    expect(screen.getByText('cloudflare.com · A · 60s', { exact: false })).toBeInTheDocument()
+    expect(screen.getByText('DNS')).toBeInTheDocument()
+  })
 })

@@ -51,4 +51,16 @@ describe('AlertsPage', () => {
     // The section heading "🔴 Active (N)" should be gone; the filter button text "Active" stays
     expect(screen.queryByText(/🔴 Active/i)).not.toBeInTheDocument()
   })
+
+  it('renders a search input', async () => {
+    render(<AlertsPage />, { wrapper })
+    await waitFor(() => screen.getByPlaceholderText(/search/i))
+    expect(screen.getByPlaceholderText(/search/i)).toBeInTheDocument()
+  })
+
+  it('shows pagination for resolved incidents', async () => {
+    render(<AlertsPage />, { wrapper })
+    // Wait for resolved incidents to load (pagination renders after data arrives)
+    await waitFor(() => expect(screen.getByRole('navigation')).toBeInTheDocument())
+  })
 })
