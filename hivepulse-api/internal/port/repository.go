@@ -49,11 +49,12 @@ type IncidentRepository interface {
 	// Resolve sets resolved_at for the open incident for monitorID.
 	// Idempotent: if no open incident exists, this is a no-op (no error).
 	Resolve(ctx context.Context, monitorID string, resolvedAt time.Time) error
-	FindActive(ctx context.Context) ([]*domain.Incident, error)
-	// FindRecent returns the last `limit` incidents regardless of status, ordered by started_at DESC.
-	FindRecent(ctx context.Context, limit int) ([]*domain.Incident, error)
-	// FindResolved returns the last `limit` resolved incidents, ordered by resolved_at DESC.
-	FindResolved(ctx context.Context, limit int) ([]*domain.Incident, error)
+	// FindActive returns all open incidents matching q (monitor name ILIKE), up to limit, with total count.
+	FindActive(ctx context.Context, q string, offset, limit int) ([]*domain.Incident, int, error)
+	// FindRecent returns the last limit incidents regardless of status, filtered by q, with total count.
+	FindRecent(ctx context.Context, q string, offset, limit int) ([]*domain.Incident, int, error)
+	// FindResolved returns resolved incidents filtered by q, with offset/limit pagination and total count.
+	FindResolved(ctx context.Context, q string, offset, limit int) ([]*domain.Incident, int, error)
 	// FindByMonitorAndTimeRange returns all incidents for monitorID that started at or after since,
 	// ordered by started_at ASC. Includes active (unresolved) incidents.
 	FindByMonitorAndTimeRange(ctx context.Context, monitorID string, since time.Time) ([]*domain.Incident, error)

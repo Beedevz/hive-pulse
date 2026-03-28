@@ -34,34 +34,41 @@ func (_m *IncidentRepository) Create(ctx context.Context, incident *domain.Incid
 	return r0
 }
 
-// FindActive provides a mock function with given fields: ctx
-func (_m *IncidentRepository) FindActive(ctx context.Context) ([]*domain.Incident, error) {
-	ret := _m.Called(ctx)
+// FindActive provides a mock function with given fields: ctx, q, offset, limit
+func (_m *IncidentRepository) FindActive(ctx context.Context, q string, offset int, limit int) ([]*domain.Incident, int, error) {
+	ret := _m.Called(ctx, q, offset, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindActive")
 	}
 
 	var r0 []*domain.Incident
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) ([]*domain.Incident, error)); ok {
-		return rf(ctx)
+	var r1 int
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, int, int) ([]*domain.Incident, int, error)); ok {
+		return rf(ctx, q, offset, limit)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) []*domain.Incident); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, string, int, int) []*domain.Incident); ok {
+		r0 = rf(ctx, q, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*domain.Incident)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, string, int, int) int); ok {
+		r1 = rf(ctx, q, offset, limit)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(int)
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(context.Context, string, int, int) error); ok {
+		r2 = rf(ctx, q, offset, limit)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // FindByMonitorAndTimeRange provides a mock function with given fields: ctx, monitorID, since
@@ -94,64 +101,78 @@ func (_m *IncidentRepository) FindByMonitorAndTimeRange(ctx context.Context, mon
 	return r0, r1
 }
 
-// FindRecent provides a mock function with given fields: ctx, limit
-func (_m *IncidentRepository) FindRecent(ctx context.Context, limit int) ([]*domain.Incident, error) {
-	ret := _m.Called(ctx, limit)
+// FindRecent provides a mock function with given fields: ctx, q, offset, limit
+func (_m *IncidentRepository) FindRecent(ctx context.Context, q string, offset int, limit int) ([]*domain.Incident, int, error) {
+	ret := _m.Called(ctx, q, offset, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindRecent")
 	}
 
 	var r0 []*domain.Incident
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int) ([]*domain.Incident, error)); ok {
-		return rf(ctx, limit)
+	var r1 int
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, int, int) ([]*domain.Incident, int, error)); ok {
+		return rf(ctx, q, offset, limit)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int) []*domain.Incident); ok {
-		r0 = rf(ctx, limit)
+	if rf, ok := ret.Get(0).(func(context.Context, string, int, int) []*domain.Incident); ok {
+		r0 = rf(ctx, q, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*domain.Incident)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
-		r1 = rf(ctx, limit)
+	if rf, ok := ret.Get(1).(func(context.Context, string, int, int) int); ok {
+		r1 = rf(ctx, q, offset, limit)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(int)
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(context.Context, string, int, int) error); ok {
+		r2 = rf(ctx, q, offset, limit)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
-// FindResolved provides a mock function with given fields: ctx, limit
-func (_m *IncidentRepository) FindResolved(ctx context.Context, limit int) ([]*domain.Incident, error) {
-	ret := _m.Called(ctx, limit)
+// FindResolved provides a mock function with given fields: ctx, q, offset, limit
+func (_m *IncidentRepository) FindResolved(ctx context.Context, q string, offset int, limit int) ([]*domain.Incident, int, error) {
+	ret := _m.Called(ctx, q, offset, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindResolved")
 	}
 
 	var r0 []*domain.Incident
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int) ([]*domain.Incident, error)); ok {
-		return rf(ctx, limit)
+	var r1 int
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, int, int) ([]*domain.Incident, int, error)); ok {
+		return rf(ctx, q, offset, limit)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int) []*domain.Incident); ok {
-		r0 = rf(ctx, limit)
+	if rf, ok := ret.Get(0).(func(context.Context, string, int, int) []*domain.Incident); ok {
+		r0 = rf(ctx, q, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*domain.Incident)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
-		r1 = rf(ctx, limit)
+	if rf, ok := ret.Get(1).(func(context.Context, string, int, int) int); ok {
+		r1 = rf(ctx, q, offset, limit)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(int)
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(context.Context, string, int, int) error); ok {
+		r2 = rf(ctx, q, offset, limit)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // Resolve provides a mock function with given fields: ctx, monitorID, resolvedAt

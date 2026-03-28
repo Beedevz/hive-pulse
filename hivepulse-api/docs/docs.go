@@ -251,8 +251,21 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "string",
+                        "description": "Search by monitor name (case-insensitive)",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
-                        "default": 100,
+                        "default": 0,
+                        "description": "Pagination offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
                         "description": "Max results",
                         "name": "limit",
                         "in": "query"
@@ -262,8 +275,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/handler.incidentListResponse"
                         }
                     }
                 }
@@ -1660,6 +1672,46 @@ const docTemplate = `{
                 },
                 "uptime_pct": {
                     "type": "number"
+                }
+            }
+        },
+        "handler.incidentListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handler.incidentResponse"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handler.incidentResponse": {
+            "type": "object",
+            "properties": {
+                "duration_s": {
+                    "type": "integer"
+                },
+                "error_msg": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "monitor_id": {
+                    "type": "string"
+                },
+                "monitor_name": {
+                    "type": "string"
+                },
+                "resolved_at": {
+                    "type": "string"
+                },
+                "started_at": {
+                    "type": "string"
                 }
             }
         },

@@ -207,7 +207,7 @@ func (u *StatusPageUsecase) GetPublic(ctx context.Context, slug string) (*domain
 
 	var activeIncidents, recentIncidents []domain.PublicIncident
 	if u.incidentRepo != nil {
-		if active, err := u.incidentRepo.FindActive(ctx); err == nil {
+		if active, _, err := u.incidentRepo.FindActive(ctx, "", 0, 10); err == nil {
 			for _, inc := range active {
 				if monitorIDs[inc.MonitorID] {
 					activeIncidents = append(activeIncidents, domain.PublicIncident{
@@ -219,7 +219,7 @@ func (u *StatusPageUsecase) GetPublic(ctx context.Context, slug string) (*domain
 				}
 			}
 		}
-		if resolved, err := u.incidentRepo.FindResolved(ctx, 50); err == nil {
+		if resolved, _, err := u.incidentRepo.FindResolved(ctx, "", 0, 50); err == nil {
 			for _, inc := range resolved {
 				if monitorIDs[inc.MonitorID] && len(recentIncidents) < 10 {
 					durationS := 0
