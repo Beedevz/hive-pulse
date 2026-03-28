@@ -22,10 +22,10 @@ type incidentModel struct {
 func (incidentModel) TableName() string { return "incidents" }
 
 const (
-	incidentTable    = "incidents i"
-	incidentJoin     = "LEFT JOIN monitors m ON m.id = i.monitor_id"
-	incidentQFilter  = "? = '' OR COALESCE(m.name, i.monitor_name) ILIKE '%' || ? || '%'"
-	incidentSelect   = "i.id, i.monitor_id, COALESCE(m.name, i.monitor_name) AS current_name, i.started_at, i.resolved_at, i.error_msg"
+	incidentTable     = "incidents i"
+	incidentJoin      = "LEFT JOIN monitors m ON m.id = i.monitor_id"
+	incidentQFilter   = "? = '' OR COALESCE(m.name, i.monitor_name) ILIKE ?"
+	incidentSelect    = "i.id, i.monitor_id, COALESCE(m.name, i.monitor_name) AS current_name, i.started_at, i.resolved_at, i.error_msg"
 	incidentOrderDesc = "i.started_at DESC"
 )
 
@@ -82,7 +82,7 @@ func (r *IncidentRepo) FindActive(ctx context.Context, q string, offset, limit i
 		Table(incidentTable).
 		Joins(incidentJoin).
 		Where("i.resolved_at IS NULL").
-		Where(incidentQFilter, q, q)
+		Where(incidentQFilter, q, "%"+q+"%")
 
 	var total int64
 	if err := base.Count(&total).Error; err != nil {
@@ -105,7 +105,7 @@ func (r *IncidentRepo) FindRecent(ctx context.Context, q string, offset, limit i
 	base := r.db.WithContext(ctx).
 		Table(incidentTable).
 		Joins(incidentJoin).
-		Where(incidentQFilter, q, q)
+		Where(incidentQFilter, q, "%"+q+"%")
 
 	var total int64
 	if err := base.Count(&total).Error; err != nil {
@@ -129,7 +129,7 @@ func (r *IncidentRepo) FindResolved(ctx context.Context, q string, offset, limit
 		Table(incidentTable).
 		Joins(incidentJoin).
 		Where("i.resolved_at IS NOT NULL").
-		Where(incidentQFilter, q, q)
+		Where(incidentQFilter, q, "%"+q+"%")
 
 	var total int64
 	if err := base.Count(&total).Error; err != nil {
