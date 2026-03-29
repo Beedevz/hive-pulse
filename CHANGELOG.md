@@ -2,6 +2,27 @@
 
 All notable changes to HivePulse are documented here.
 
+## [1.4.0] — 2026-03-29
+
+### 🚀 Features
+
+- Slice 7 — TCP/PING/DNS UI: colored type chips and type-specific sub-labels in MonitorListItem (#27)
+- AlertsPage — server-side search with debounce, Load More for active incidents, MUI Pagination for resolved (#27)
+- StatsBar — Avg Response metric with mini sparkline, real-time updates via WebSocket heartbeats (#28)
+- Backend `GET /api/v1/stats/overview` — global weighted avg response time + 12h hourly sparkline buckets (#28)
+- Backend `GET /api/v1/incidents` — search by monitor name (`q`), offset pagination, total count (#27)
+
+### ♻️ Refactor
+
+- Migrate all MUI `inputProps` to `slotProps` across 5 components (15 instances) (#27)
+- Extract MSW incidents handler into dedicated `test/handlers/incidents.ts` (#27)
+
+### 🐛 Bug Fixes
+
+- Fix HoneycombBg hexagon sizing inconsistency across pages (#27)
+- Fix ESLint `setState-in-effect` and `react-hooks/refs` violations in AlertsPage (#27)
+- Fix CodeQL `missing-regexp-anchor` alert in test file (#27)
+
 ## [1.3.0] — 2026-03-27
 
 ### 🚀 Features
