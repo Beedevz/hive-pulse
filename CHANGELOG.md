@@ -2,6 +2,20 @@
 
 All notable changes to HivePulse are documented here.
 
+## [1.5.0] — 2026-03-29
+
+### 🚀 Features
+
+- Single binary with embedded frontend — Go serves both API and React UI via `//go:embed` (#29)
+- Two deployment modes: standalone (port 8080) or with nginx sidecar reverse proxy (#29)
+- Root `Makefile` with `build-all` target for full-stack local builds (#29)
+
+### ♻️ Refactor
+
+- Replace nginx+entrypoint.sh with single Go process serving embedded static files (#29)
+- Simplify `nginx.conf` to pure reverse proxy — no more `try_files` or static file serving (#29)
+- Remove `/s/:slug` Go route — status page rendering handled by React SPA fallback (#29)
+
 ## [1.4.0] — 2026-03-29
 
 ### 🚀 Features
