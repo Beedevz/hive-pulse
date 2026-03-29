@@ -21,6 +21,15 @@ definitions:
         description: IANA timezone, e.g. "Europe/Istanbul"
         type: string
     type: object
+  domain.OverviewStats:
+    properties:
+      avg_ping_ms:
+        type: integer
+      buckets:
+        items:
+          $ref: '#/definitions/domain.StatsBucket'
+        type: array
+    type: object
   domain.ScheduleRule:
     properties:
       days:
@@ -944,6 +953,20 @@ paths:
       summary: Update SMTP settings
       tags:
       - settings
+  /stats/overview:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.OverviewStats'
+      security:
+      - Bearer: []
+      summary: Global stats overview
+      tags:
+      - stats
   /status-pages:
     get:
       parameters:

@@ -24,13 +24,15 @@ hivepulse-web/.env.*.local
 *.docx
 *.pdf
 hivepulse-design-system-prompt.md
-docs/
+docs/superpowers/
+docs/roadmap-analysis.md
 
 # Superpowers / Claude
 .superpowers/
 .worktrees/
 CLAUDE.md
 .claude
+task.md
 
 # OS
 .DS_Store

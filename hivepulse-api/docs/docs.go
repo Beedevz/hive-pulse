@@ -1088,6 +1088,30 @@ const docTemplate = `{
                 }
             }
         },
+        "/stats/overview": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "stats"
+                ],
+                "summary": "Global stats overview",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.OverviewStats"
+                        }
+                    }
+                }
+            }
+        },
         "/status-pages": {
             "get": {
                 "security": [
@@ -1612,6 +1636,20 @@ const docTemplate = `{
                 "timezone": {
                     "description": "IANA timezone, e.g. \"Europe/Istanbul\"",
                     "type": "string"
+                }
+            }
+        },
+        "domain.OverviewStats": {
+            "type": "object",
+            "properties": {
+                "avg_ping_ms": {
+                    "type": "integer"
+                },
+                "buckets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.StatsBucket"
+                    }
                 }
             }
         },
