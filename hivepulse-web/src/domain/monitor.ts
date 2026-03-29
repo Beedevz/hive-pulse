@@ -17,6 +17,7 @@ export interface Monitor {
   request_body?: string
   follow_redirects?: boolean
   skip_tls_verify?: boolean
+  expected_keyword?: string
   host?: string
   port?: number
   ping_host?: string

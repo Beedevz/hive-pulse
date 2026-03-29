@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/beedevz/hivepulse/internal/domain"
@@ -58,11 +60,26 @@ func (c *HTTPChecker) Check(ctx context.Context, m *domain.Monitor) (*domain.Hea
 	defer resp.Body.Close()
 
 	hb.StatusCode = resp.StatusCode
-	if resp.StatusCode == m.ExpectedStatus {
-		hb.Status = "up"
-	} else {
+	if resp.StatusCode != m.ExpectedStatus {
 		hb.Status = "down"
 		hb.ErrorMsg = fmt.Sprintf("expected status %d, got %d", m.ExpectedStatus, resp.StatusCode)
+		return hb, nil
 	}
+
+	hb.Status = "up"
+
+	if m.ExpectedKeyword != "" {
+		body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+		if err != nil {
+			hb.Status = "down"
+			hb.ErrorMsg = fmt.Sprintf("failed to read response body: %v", err)
+			return hb, nil
+		}
+		if !strings.Contains(string(body), m.ExpectedKeyword) {
+			hb.Status = "down"
+			hb.ErrorMsg = fmt.Sprintf("keyword %q not found in response body", m.ExpectedKeyword)
+		}
+	}
+
 	return hb, nil
 }

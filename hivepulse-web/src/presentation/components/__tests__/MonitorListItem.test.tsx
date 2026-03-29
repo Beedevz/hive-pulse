@@ -87,6 +87,15 @@ describe('MonitorListItem', () => {
     expect(screen.getByText('PING')).toBeInTheDocument()
   })
 
+  it('shows keyword in HTTP sub-label when expected_keyword is set', () => {
+    const keywordMonitor: Monitor = {
+      ...baseMonitor,
+      expected_keyword: '"status":"ok"',
+    }
+    render(<MonitorListItem monitor={keywordMonitor} isSelected={false} />, { wrapper })
+    expect(screen.getByText('"status":"ok"', { exact: false })).toBeInTheDocument()
+  })
+
   it('shows dns_host · record_type for DNS monitor', () => {
     const dnsMonitor: Monitor = {
       ...baseMonitor,

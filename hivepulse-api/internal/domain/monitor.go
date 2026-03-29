@@ -29,6 +29,7 @@ type Monitor struct {
 	RequestBody     string
 	FollowRedirects bool
 	SkipTLSVerify   bool
+	ExpectedKeyword string
 	// TCP
 	Host string
 	Port int

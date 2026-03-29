@@ -57,6 +57,7 @@ type monitorResponse struct {
 	ExpectedStatus  int     `json:"expected_status,omitempty"`
 	FollowRedirects bool    `json:"follow_redirects,omitempty"`
 	SkipTLSVerify   bool    `json:"skip_tls_verify,omitempty"`
+	ExpectedKeyword string  `json:"expected_keyword,omitempty"`
 	Host            string  `json:"host,omitempty"`
 	Port            int     `json:"port,omitempty"`
 	PingHost        string  `json:"ping_host,omitempty"`
@@ -85,7 +86,7 @@ func toMonitorResponse(m *domain.Monitor, lastStatus string, uptime24h float64) 
 	return monitorResponse{
 		ID: m.ID, Name: m.Name, CheckType: string(m.CheckType),
 		Interval: m.Interval, Timeout: m.Timeout, Retries: m.Retries, RetryInterval: m.RetryInterval, Enabled: m.Enabled,
-		URL: m.URL, Method: m.Method, ExpectedStatus: m.ExpectedStatus, FollowRedirects: m.FollowRedirects, SkipTLSVerify: m.SkipTLSVerify,
+		URL: m.URL, Method: m.Method, ExpectedStatus: m.ExpectedStatus, FollowRedirects: m.FollowRedirects, SkipTLSVerify: m.SkipTLSVerify, ExpectedKeyword: m.ExpectedKeyword,
 		Host: m.Host, Port: m.Port,
 		PingHost: m.PingHost, PacketCount: m.PacketCount,
 		DNSHost: m.DNSHost, RecordType: m.RecordType, DNSServer: m.DNSServer,
@@ -154,8 +155,9 @@ type monitorWriteRequest struct {
 	RequestHeaders  string `json:"request_headers"`
 	RequestBody     string `json:"request_body"`
 	FollowRedirects *bool  `json:"follow_redirects"`
-	SkipTLSVerify bool   `json:"skip_tls_verify"`
-	Host          string `json:"host"`
+	SkipTLSVerify   bool   `json:"skip_tls_verify"`
+	ExpectedKeyword string `json:"expected_keyword"`
+	Host            string `json:"host"`
 	Port          int    `json:"port"`
 	PingHost      string `json:"ping_host"`
 	PacketCount   int    `json:"packet_count"`
@@ -178,7 +180,7 @@ func toMonitorRequest(req monitorWriteRequest) usecase.MonitorRequest {
 		Name: req.Name, CheckType: req.CheckType, Interval: req.Interval,
 		Timeout: req.Timeout, Retries: req.Retries, RetryInterval: req.RetryInterval,
 		Enabled: enabled, URL: req.URL, Method: req.Method, ExpectedStatus: req.ExpectedStatus,
-		RequestHeaders: req.RequestHeaders, RequestBody: req.RequestBody, FollowRedirects: followRedirects, SkipTLSVerify: req.SkipTLSVerify,
+		RequestHeaders: req.RequestHeaders, RequestBody: req.RequestBody, FollowRedirects: followRedirects, SkipTLSVerify: req.SkipTLSVerify, ExpectedKeyword: req.ExpectedKeyword,
 		Host: req.Host, Port: req.Port, PingHost: req.PingHost, PacketCount: req.PacketCount,
 		DNSHost: req.DNSHost, RecordType: req.RecordType, ExpectedValue: req.ExpectedValue, DNSServer: req.DNSServer,
 	}

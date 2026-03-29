@@ -26,6 +26,7 @@ type MonitorRequest struct {
 	RequestBody     string
 	FollowRedirects bool
 	SkipTLSVerify   bool
+	ExpectedKeyword string
 	// TCP
 	Host string
 	Port int
@@ -111,6 +112,7 @@ func reqToMonitor(userID string, req MonitorRequest) *domain.Monitor {
 		RequestHeaders: req.RequestHeaders, RequestBody: req.RequestBody,
 		FollowRedirects: req.FollowRedirects,
 		SkipTLSVerify:   req.SkipTLSVerify,
+		ExpectedKeyword: req.ExpectedKeyword,
 		Host: req.Host, Port: req.Port,
 		PingHost: req.PingHost, PacketCount: packetCount,
 		DNSHost: req.DNSHost, RecordType: req.RecordType,

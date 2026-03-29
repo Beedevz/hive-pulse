@@ -1817,6 +1817,9 @@ const docTemplate = `{
                 "enabled": {
                     "type": "boolean"
                 },
+                "expected_keyword": {
+                    "type": "string"
+                },
                 "expected_status": {
                     "type": "integer"
                 },

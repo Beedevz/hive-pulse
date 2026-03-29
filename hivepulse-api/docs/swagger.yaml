@@ -135,6 +135,8 @@ definitions:
         type: string
       enabled:
         type: boolean
+      expected_keyword:
+        type: string
       expected_status:
         type: integer
       expected_value:

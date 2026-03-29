@@ -32,7 +32,10 @@ function getSubLabel(m: Monitor): string {
     case 'tcp':  return `${m.host}:${m.port} · ${interval}`
     case 'ping': return `${m.ping_host} · ${m.packet_count ?? 3}x · ${interval}`
     case 'dns':  return `${m.dns_host} · ${m.record_type} · ${interval}`
-    default:     return `${m.url} · ${interval}`
+    default: {
+      const base = `${m.url} · ${interval}`
+      return m.expected_keyword ? `${base} · "${m.expected_keyword}"` : base
+    }
   }
 }
 
