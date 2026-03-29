@@ -2,6 +2,26 @@ apiVersion: v1
 entries:
   hivepulse:
   - apiVersion: v2
+    appVersion: v1.4.0
+    created: "2026-03-29T07:58:38.958426187Z"
+    description: Open-source uptime monitoring and status page platform
+    digest: 5922574cf22de24d276597927450e3810b149bac25a829458ad481e9066daffd
+    home: https://github.com/Beedevz/hivepulse
+    keywords:
+    - uptime
+    - monitoring
+    - status-page
+    maintainers:
+    - name: Beedevz
+      url: https://github.com/Beedevz
+    name: hivepulse
+    sources:
+    - https://github.com/Beedevz/hivepulse
+    type: application
+    urls:
+    - https://github.com/Beedevz/hivepulse/releases/download/hivepulse-1.4.0/hivepulse-1.4.0.tgz
+    version: 1.4.0
+  - apiVersion: v2
     appVersion: v1.3.0
     created: "2026-03-27T19:48:02.788386446Z"
     description: Open-source uptime monitoring and status page platform
@@ -61,4 +81,4 @@ entries:
     urls:
     - https://github.com/Beedevz/hivepulse/releases/download/hivepulse-1.1.0/hivepulse-1.1.0.tgz
     version: 1.1.0
-generated: "2026-03-27T19:48:02.788400201Z"
+generated: "2026-03-29T07:58:38.958441818Z"
