@@ -10,9 +10,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"log"
+	"net/http"
 
 	_ "github.com/beedevz/hivepulse/docs"
+	"github.com/beedevz/hivepulse/web"
 	"github.com/beedevz/hivepulse/infrastructure"
 	"github.com/beedevz/hivepulse/internal/adapter/handler"
 	"github.com/beedevz/hivepulse/internal/adapter/middleware"
@@ -210,11 +213,34 @@ func main() {
 		statusPages.DELETE("/:id", adminGuard, statusPageHandler.Delete)
 	}
 
+	// Serve embedded frontend with SPA fallback
+	staticFS, _ := fs.Sub(web.DistFS, "dist")
+	r.NoRoute(serveFrontend(staticFS))
+
 	defer scheduler.Stop()
 
 	addr := fmt.Sprintf(":%s", cfg.APIPort)
 	log.Printf("HivePulse API starting on %s", addr)
 	if err := r.Run(addr); err != nil {
 		log.Fatalf("server error: %v", err)
+	}
+}
+
+func serveFrontend(staticFS fs.FS) gin.HandlerFunc {
+	fileServer := http.FileServer(http.FS(staticFS))
+	return func(c *gin.Context) {
+		path := c.Request.URL.Path
+
+		// Try to serve the exact file
+		f, err := staticFS.Open(path[1:]) // strip leading "/"
+		if err == nil {
+			f.Close()
+			fileServer.ServeHTTP(c.Writer, c.Request)
+			return
+		}
+
+		// SPA fallback: serve index.html for non-file routes
+		c.Request.URL.Path = "/"
+		fileServer.ServeHTTP(c.Writer, c.Request)
 	}
 }
