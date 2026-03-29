@@ -81,6 +81,7 @@ export const MonitorModal = ({ open, onClose, onSubmit, initialValues, error }: 
   const [expectedStatus, setExpectedStatus] = useState(initialValues?.expected_status ?? 200)
   const [followRedirects, setFollowRedirects] = useState(initialValues?.follow_redirects ?? true)
   const [skipTLSVerify, setSkipTLSVerify] = useState(initialValues?.skip_tls_verify ?? false)
+  const [expectedKeyword, setExpectedKeyword] = useState(initialValues?.expected_keyword ?? '')
   const [host, setHost] = useState(initialValues?.host ?? '')
   const [port, setPort] = useState(initialValues?.port ?? 80)
   const [pingHost, setPingHost] = useState(initialValues?.ping_host ?? '')
@@ -96,7 +97,7 @@ export const MonitorModal = ({ open, onClose, onSubmit, initialValues, error }: 
     const base = { name, check_type: checkType, interval, timeout, retries, retry_interval: retryInterval, enabled }
     let payload: CreateMonitorPayload
     if (checkType === 'http') {
-      payload = { ...base, url, method, expected_status: expectedStatus, follow_redirects: followRedirects, skip_tls_verify: skipTLSVerify }
+      payload = { ...base, url, method, expected_status: expectedStatus, follow_redirects: followRedirects, skip_tls_verify: skipTLSVerify, ...(expectedKeyword ? { expected_keyword: expectedKeyword } : {}) }
     } else if (checkType === 'tcp') {
       payload = { ...base, host, port }
     } else if (checkType === 'ping') {
@@ -166,6 +167,17 @@ export const MonitorModal = ({ open, onClose, onSubmit, initialValues, error }: 
                 control={<Checkbox checked={skipTLSVerify} onChange={(e) => setSkipTLSVerify(e.target.checked)} size="small" />}
                 label="Skip TLS Verification (for self-signed certificates)"
                 sx={{ mb: 1, '& .MuiFormControlLabel-label': { fontSize: '0.875rem' } }}
+              />
+              <TextField
+                id="expected_keyword"
+                label="Expected Keyword (optional)"
+                value={expectedKeyword}
+                onChange={(e) => setExpectedKeyword(e.target.value)}
+                fullWidth
+                size="small"
+                placeholder='e.g. "status":"ok"'
+                helperText="If set, response body must contain this text"
+                sx={fieldSx}
               />
             </>
           )}
