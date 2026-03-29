@@ -126,7 +126,6 @@ func main() {
 
 	r.GET("/health", func(c *gin.Context) { c.Status(200) })
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-	r.GET("/s/:slug", statusPageHandler.GetPublic)
 	r.GET("/api/v1/status-pages/public/:slug", statusPageHandler.GetPublic)
 
 	v1 := r.Group("/api/v1")

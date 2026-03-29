@@ -36,7 +36,7 @@ export const statusPageHandlers = [
     HttpResponse.json(mockStatusPage)
   ),
   http.delete('http://localhost:8080/api/v1/status-pages/:id', () => new HttpResponse(null, { status: 204 })),
-  http.get('http://localhost:8080/s/:slug', () =>
+  http.get('http://localhost:8080/api/v1/status-pages/public/:slug', () =>
     HttpResponse.json(mockPublicData)
   ),
 ]
