@@ -1,0 +1,18 @@
+# Override: adds nginx as a reverse proxy sidecar in front of Go.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.nginx.yml up
+version: "3.9"
+
+services:
+  app:
+    ports:
+      - "8080"
+
+  nginx:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+    restart: unless-stopped
