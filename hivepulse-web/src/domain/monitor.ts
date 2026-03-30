@@ -1,5 +1,5 @@
 export type CheckType = 'http' | 'tcp' | 'ping' | 'dns'
-export type MonitorStatus = 'up' | 'down' | 'unknown'
+export type MonitorStatus = 'up' | 'down' | 'unknown' | 'maintenance'
 
 export interface Monitor {
   id: string
