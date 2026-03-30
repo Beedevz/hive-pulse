@@ -23,6 +23,7 @@ export function TopNav() {
   const monitors = monitorsData?.data ?? []
   const upCount = monitors.filter((m) => m.last_status === 'up').length
   const downCount = monitors.filter((m) => m.last_status === 'down').length
+  const maintCount = monitors.filter((m) => m.last_status === 'maintenance').length
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
   const { mode, toggle } = useThemeMode()
@@ -116,6 +117,15 @@ export function TopNav() {
               <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: colors.down }} />
               <Typography fontSize="0.6875rem" fontWeight={600} color={colors.down}>
                 {downCount} down
+              </Typography>
+            </>
+          )}
+          {maintCount > 0 && (
+            <>
+              <Typography fontSize="0.6875rem" color="text.disabled" mx={0.25}>·</Typography>
+              <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: colors.blue }} />
+              <Typography fontSize="0.6875rem" fontWeight={600} color={colors.blue}>
+                {maintCount} maint
               </Typography>
             </>
           )}
