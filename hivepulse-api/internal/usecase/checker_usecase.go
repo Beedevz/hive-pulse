@@ -79,9 +79,15 @@ func (u *CheckerUsecase) RunCheck(ctx context.Context, monitorID string) {
 
 	// Check if monitor is in maintenance — skip incident creation + notifications
 	if u.maintenance != nil {
-		inMaint, _ := u.maintenance.IsMonitorInMaintenance(ctx, monitorID, heartbeat.CheckedAt)
+		inMaint, mErr := u.maintenance.IsMonitorInMaintenance(ctx, monitorID, heartbeat.CheckedAt)
+		if mErr != nil {
+			log.Printf("checker: IsMonitorInMaintenance error for %q: %v", monitorID, mErr)
+		}
 		if inMaint {
-			_ = u.monitors.UpdateLastStatus(ctx, monitorID, "maintenance")
+			log.Printf("checker: monitor %q is in maintenance, skipping incident/notification", monitorID)
+			if err := u.monitors.UpdateLastStatus(ctx, monitorID, "maintenance"); err != nil {
+				log.Printf("checker: UpdateLastStatus(maintenance) failed for %q: %v", monitorID, err)
+			}
 			event, _ := json.Marshal(HeartbeatEvent{
 				Type: "heartbeat", MonitorID: monitorID, Status: "maintenance",
 				PingMS: heartbeat.PingMS, CheckedAt: heartbeat.CheckedAt,
