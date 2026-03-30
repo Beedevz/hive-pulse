@@ -20,12 +20,13 @@ type HeartbeatEvent struct {
 }
 
 type CheckerUsecase struct {
-	monitors   port.MonitorRepository
-	heartbeats port.HeartbeatRepository
-	incidents  port.IncidentRepository
-	checkers   map[domain.CheckType]port.CheckerService
-	hub        port.WSBroadcaster
-	notifier   port.Notifier
+	monitors    port.MonitorRepository
+	heartbeats  port.HeartbeatRepository
+	incidents   port.IncidentRepository
+	checkers    map[domain.CheckType]port.CheckerService
+	hub         port.WSBroadcaster
+	notifier    port.Notifier
+	maintenance port.MaintenanceWindowRepository
 }
 
 func NewCheckerUsecase(
@@ -34,13 +35,15 @@ func NewCheckerUsecase(
 	incidents port.IncidentRepository,
 	checkers map[domain.CheckType]port.CheckerService,
 	hub port.WSBroadcaster,
+	maintenance port.MaintenanceWindowRepository,
 ) *CheckerUsecase {
 	return &CheckerUsecase{
-		monitors:   monitors,
-		heartbeats: heartbeats,
-		incidents:  incidents,
-		checkers:   checkers,
-		hub:        hub,
+		monitors:    monitors,
+		heartbeats:  heartbeats,
+		incidents:   incidents,
+		checkers:    checkers,
+		hub:         hub,
+		maintenance: maintenance,
 	}
 }
 
@@ -72,6 +75,20 @@ func (u *CheckerUsecase) RunCheck(ctx context.Context, monitorID string) {
 	heartbeat.MonitorID = monitorID
 	if err := u.heartbeats.Create(ctx, heartbeat); err != nil {
 		return
+	}
+
+	// Check if monitor is in maintenance — skip incident creation + notifications
+	if u.maintenance != nil {
+		inMaint, _ := u.maintenance.IsMonitorInMaintenance(ctx, monitorID, heartbeat.CheckedAt)
+		if inMaint {
+			_ = u.monitors.UpdateLastStatus(ctx, monitorID, "maintenance")
+			event, _ := json.Marshal(HeartbeatEvent{
+				Type: "heartbeat", MonitorID: monitorID, Status: "maintenance",
+				PingMS: heartbeat.PingMS, CheckedAt: heartbeat.CheckedAt,
+			})
+			u.hub.Broadcast(event)
+			return
+		}
 	}
 
 	prevStatus := monitor.LastStatus

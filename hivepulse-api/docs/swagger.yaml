@@ -178,6 +178,35 @@ definitions:
     - interval
     - name
     type: object
+  handler.mwCreateRequest:
+    properties:
+      ends_at:
+        type: string
+      monitor_id:
+        type: string
+      reason:
+        type: string
+      starts_at:
+        type: string
+    required:
+    - ends_at
+    - starts_at
+    type: object
+  handler.mwResponse:
+    properties:
+      created_at:
+        type: string
+      ends_at:
+        type: string
+      id:
+        type: string
+      monitor_id:
+        type: string
+      reason:
+        type: string
+      starts_at:
+        type: string
+    type: object
   handler.setupRequest:
     properties:
       email:
@@ -445,6 +474,65 @@ paths:
       summary: List incidents
       tags:
       - incidents
+  /maintenance-windows:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: List global maintenance windows
+      tags:
+      - maintenance
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Maintenance window
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.mwCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.mwResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Create maintenance window
+      tags:
+      - maintenance
+  /maintenance-windows/{id}:
+    delete:
+      parameters:
+      - description: Window ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      security:
+      - Bearer: []
+      summary: Delete maintenance window
+      tags:
+      - maintenance
   /monitors:
     get:
       parameters:
@@ -685,6 +773,27 @@ paths:
       summary: List heartbeats for a monitor
       tags:
       - monitors
+  /monitors/{id}/maintenance:
+    get:
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: List maintenance windows for a monitor
+      tags:
+      - maintenance
   /monitors/{id}/stats:
     get:
       parameters:

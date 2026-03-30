@@ -281,6 +281,103 @@ const docTemplate = `{
                 }
             }
         },
+        "/maintenance-windows": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "maintenance"
+                ],
+                "summary": "List global maintenance windows",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "maintenance"
+                ],
+                "summary": "Create maintenance window",
+                "parameters": [
+                    {
+                        "description": "Maintenance window",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.mwCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/handler.mwResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/maintenance-windows/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "tags": [
+                    "maintenance"
+                ],
+                "summary": "Delete maintenance window",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Window ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
         "/monitors": {
             "get": {
                 "security": [
@@ -653,6 +750,40 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/monitors/{id}/maintenance": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "maintenance"
+                ],
+                "summary": "List maintenance windows for a monitor",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Monitor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 }
@@ -1872,6 +2003,50 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.mwCreateRequest": {
+            "type": "object",
+            "required": [
+                "ends_at",
+                "starts_at"
+            ],
+            "properties": {
+                "ends_at": {
+                    "type": "string"
+                },
+                "monitor_id": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "starts_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.mwResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "ends_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "monitor_id": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "starts_at": {
                     "type": "string"
                 }
             }

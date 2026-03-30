@@ -32,7 +32,7 @@ func TestRunCheck_Up_StoresAndBroadcasts(t *testing.T) {
 	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo,
 		map[domain.CheckType]port.CheckerService{
 			domain.CheckHTTP: checkerSvc,
-		}, broadcaster)
+		}, broadcaster, nil)
 
 	uc.RunCheck(context.Background(), "m1")
 
@@ -50,7 +50,7 @@ func TestRunCheck_DisabledMonitor_Skips(t *testing.T) {
 	m := &domain.Monitor{ID: "m2", Enabled: false}
 	monitorRepo.On("FindByID", mock.Anything, "m2").Return(m, nil)
 
-	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo, nil, broadcaster)
+	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo, nil, broadcaster, nil)
 	uc.RunCheck(context.Background(), "m2")
 
 	heartbeatRepo.AssertNotCalled(t, "Create")
@@ -78,7 +78,7 @@ func TestRunCheck_AllRetriesFail_StoresDown(t *testing.T) {
 	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo,
 		map[domain.CheckType]port.CheckerService{
 			domain.CheckHTTP: checkerSvc,
-		}, broadcaster)
+		}, broadcaster, nil)
 
 	uc.RunCheck(context.Background(), "m3")
 
@@ -111,7 +111,7 @@ func TestRunCheck_UpToDown_OpensIncident(t *testing.T) {
 	broadcaster.On("Broadcast", mock.AnythingOfType("[]uint8")).Return()
 
 	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo,
-		map[domain.CheckType]port.CheckerService{domain.CheckHTTP: checkerSvc}, broadcaster)
+		map[domain.CheckType]port.CheckerService{domain.CheckHTTP: checkerSvc}, broadcaster, nil)
 	uc.RunCheck(context.Background(), "m1")
 
 	incidentRepo.AssertExpectations(t)
@@ -138,7 +138,7 @@ func TestRunCheck_DownToUp_ResolvesIncident(t *testing.T) {
 	broadcaster.On("Broadcast", mock.AnythingOfType("[]uint8")).Return()
 
 	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo,
-		map[domain.CheckType]port.CheckerService{domain.CheckHTTP: checkerSvc}, broadcaster)
+		map[domain.CheckType]port.CheckerService{domain.CheckHTTP: checkerSvc}, broadcaster, nil)
 	uc.RunCheck(context.Background(), "m2")
 
 	incidentRepo.AssertExpectations(t)
@@ -165,7 +165,7 @@ func TestRunCheck_DownToDown_NoNewIncident(t *testing.T) {
 	// incidentRepo.Create must NOT be called
 
 	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo,
-		map[domain.CheckType]port.CheckerService{domain.CheckHTTP: checkerSvc}, broadcaster)
+		map[domain.CheckType]port.CheckerService{domain.CheckHTTP: checkerSvc}, broadcaster, nil)
 	uc.RunCheck(context.Background(), "m3")
 
 	incidentRepo.AssertNotCalled(t, "Create")
@@ -192,7 +192,7 @@ func TestRunCheck_UnknownToDown_OpensIncident(t *testing.T) {
 	broadcaster.On("Broadcast", mock.AnythingOfType("[]uint8")).Return()
 
 	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo,
-		map[domain.CheckType]port.CheckerService{domain.CheckHTTP: checkerSvc}, broadcaster)
+		map[domain.CheckType]port.CheckerService{domain.CheckHTTP: checkerSvc}, broadcaster, nil)
 	uc.RunCheck(context.Background(), "m4")
 
 	incidentRepo.AssertCalled(t, "Create", mock.Anything, mock.AnythingOfType("*domain.Incident"))
@@ -226,7 +226,7 @@ func TestRunCheck_Down_CallsNotifier(t *testing.T) {
 
 	stubChecker := &stubCheckerService{status: "down", pingMS: 0}
 	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo,
-		map[domain.CheckType]port.CheckerService{domain.CheckHTTP: stubChecker}, &stubHub{})
+		map[domain.CheckType]port.CheckerService{domain.CheckHTTP: stubChecker}, &stubHub{}, nil)
 	uc.SetNotifier(notifier)
 	uc.RunCheck(context.Background(), "m1")
 
@@ -249,12 +249,37 @@ func TestRunCheck_Recovery_CallsNotifier(t *testing.T) {
 
 	stubChecker := &stubCheckerService{status: "up", pingMS: 100}
 	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo,
-		map[domain.CheckType]port.CheckerService{domain.CheckHTTP: stubChecker}, &stubHub{})
+		map[domain.CheckType]port.CheckerService{domain.CheckHTTP: stubChecker}, &stubHub{}, nil)
 	uc.SetNotifier(notifier)
 	uc.RunCheck(context.Background(), "m1")
 
 	time.Sleep(50 * time.Millisecond)
 	notifier.AssertCalled(t, "Notify", mock.Anything, "m1", domain.EventUp)
+}
+
+func TestRunCheck_InMaintenance_SkipsIncident(t *testing.T) {
+	monitorRepo := mocks.NewMonitorRepository(t)
+	heartbeatRepo := mocks.NewHeartbeatRepository(t)
+	incidentRepo := mocks.NewIncidentRepository(t)
+	maintenanceRepo := mocks.NewMaintenanceWindowRepository(t)
+
+	m := &domain.Monitor{
+		ID: "m1", CheckType: domain.CheckHTTP, Enabled: true,
+		Name: "API", LastStatus: "up",
+	}
+
+	monitorRepo.On("FindByID", mock.Anything, "m1").Return(m, nil)
+	heartbeatRepo.On("Create", mock.Anything, mock.AnythingOfType("*domain.Heartbeat")).Return(nil)
+	maintenanceRepo.On("IsMonitorInMaintenance", mock.Anything, "m1", mock.AnythingOfType("time.Time")).Return(true, nil)
+	monitorRepo.On("UpdateLastStatus", mock.Anything, "m1", "maintenance").Return(nil)
+
+	stubChecker := &stubCheckerService{status: "down", pingMS: 0}
+	uc := usecase.NewCheckerUsecase(monitorRepo, heartbeatRepo, incidentRepo,
+		map[domain.CheckType]port.CheckerService{domain.CheckHTTP: stubChecker}, &stubHub{}, maintenanceRepo)
+	uc.RunCheck(context.Background(), "m1")
+
+	incidentRepo.AssertNotCalled(t, "Create")
+	monitorRepo.AssertCalled(t, "UpdateLastStatus", mock.Anything, "m1", "maintenance")
 }
 
 // Ensure assert is used (avoids import error if no direct assertion is made).
