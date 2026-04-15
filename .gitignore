@@ -1,25 +1,28 @@
 # Go
-hivepulse-api/bin/
-hivepulse-api/vendor/
-hivepulse-api/server
+bin/
+vendor/
 *.exe
 *.exe~
 *.dll
-*.so
 *.dylib
 *.test
 *.out
-# Note: hivepulse-api/docs/ is NOT ignored — Swagger docs are committed and CI diffs them
+# Note: docs/ swagger files are NOT ignored — committed and CI diffs them
+
+# SaaS inject directories (populated by CI or make dev-setup symlinks)
+internal/providers/saas/
+ui/src/saas/
+cmd/saas/main.go
+web/dist/
 
 # Node
-hivepulse-web/node_modules/
-hivepulse-web/dist/
-hivepulse-api/web/dist/
+ui/node_modules/
+ui/dist/
 
 # Env
 .env
-hivepulse-web/.env.local
-hivepulse-web/.env.*.local
+ui/.env.local
+ui/.env.*.local
 
 # Design / planning docs (local only)
 *.docx
@@ -27,6 +30,7 @@ hivepulse-web/.env.*.local
 hivepulse-design-system-prompt.md
 docs/superpowers/
 docs/roadmap-analysis.md
+docs/mockups/
 
 # Superpowers / Claude
 .superpowers/

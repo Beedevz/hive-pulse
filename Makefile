@@ -1,16 +1,51 @@
-.PHONY: build-all build-web build-api clean
+.PHONY: dev-setup build-oss build-saas build-ui test test-go test-ui dev-ui dev-go clean
 
-# Build frontend, copy to embed dir, build Go binary
-build-all: build-web build-api
+# ── Local dev setup: symlink SaaS repos into inject directories ──────────────
+dev-setup:
+	@echo "Setting up SaaS symlinks..."
+	@mkdir -p internal/providers cmd/saas ui/src
+	@if [ -d "../hivepulse-saas-providers" ]; then \
+		ln -sfn "$$(realpath ../hivepulse-saas-providers)" internal/providers/saas; \
+		echo "  ✓ internal/providers/saas → ../hivepulse-saas-providers"; \
+	else \
+		echo "  ✗ ../hivepulse-saas-providers not found — clone it next to this repo"; \
+	fi
+	@if [ -d "../hivepulse-saas-ui" ]; then \
+		ln -sfn "$$(realpath ../hivepulse-saas-ui)" ui/src/saas; \
+		echo "  ✓ ui/src/saas → ../hivepulse-saas-ui"; \
+	else \
+		echo "  ✗ ../hivepulse-saas-ui not found — clone it next to this repo"; \
+	fi
 
-build-web:
-	cd hivepulse-web && npm run build
-	rm -rf hivepulse-api/web/dist
-	cp -r hivepulse-web/dist hivepulse-api/web/dist
+# ── Build ────────────────────────────────────────────────────────────────────
+build-ui:
+	cd ui && npm ci && npm run build
+	mkdir -p web/dist
+	cp -r ui/dist/. web/dist/
 
-build-api:
-	cd hivepulse-api && go build -ldflags="-s -w" -o bin/server ./cmd/server/...
+build-oss: build-ui
+	CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/hivepulse-oss ./cmd/oss/...
 
+build-saas: build-ui
+	CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/hivepulse-saas ./cmd/saas/...
+
+# ── Tests ────────────────────────────────────────────────────────────────────
+test-go:
+	go test ./...
+
+test-ui:
+	cd ui && npm test
+
+test: test-go test-ui
+
+# ── Dev servers (run separately in two terminals) ────────────────────────────
+dev-ui:
+	cd ui && npm run dev
+
+dev-go:
+	mkdir -p web/dist && touch web/dist/.keep
+	go run ./cmd/oss/...
+
+# ── Clean ────────────────────────────────────────────────────────────────────
 clean:
-	rm -rf hivepulse-api/web/dist
-	rm -f hivepulse-api/bin/server
+	rm -rf web/dist bin/

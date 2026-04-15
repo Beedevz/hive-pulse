@@ -1,1 +1,0 @@
-ALTER TABLE monitors DROP COLUMN expected_keyword;
