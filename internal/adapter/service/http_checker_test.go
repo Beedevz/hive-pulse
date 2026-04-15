@@ -125,7 +125,7 @@ func TestHTTPChecker_KeywordEmpty_SkipsBodyCheck(t *testing.T) {
 func TestHTTPChecker_WrongStatus_SkipsKeyword(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`"status":"ok"`))
+		_, _ = w.Write([]byte(`"status":"ok"`))
 	}))
 	defer srv.Close()
 
