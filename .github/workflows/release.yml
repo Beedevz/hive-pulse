@@ -31,22 +31,24 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version-file: hivepulse-api/go.mod
-          cache-dependency-path: hivepulse-api/go.sum
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Prepare web/dist for embed
+        run: mkdir -p web/dist && touch web/dist/.keep
 
       - name: Run Go tests
-        working-directory: hivepulse-api
-        run: go test -race ./...
+        run: go test -race ./internal/... ./infrastructure/... ./web/...
 
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
           node-version: "20"
           cache: npm
-          cache-dependency-path: hivepulse-web/package-lock.json
+          cache-dependency-path: ui/package-lock.json
 
       - name: Run frontend tests
-        working-directory: hivepulse-web
+        working-directory: ui
         run: |
           npm ci
           npm run test -- --run

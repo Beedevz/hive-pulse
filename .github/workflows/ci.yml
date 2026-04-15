@@ -16,9 +16,6 @@ jobs:
   backend:
     name: Backend
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: hivepulse-api
 
     steps:
       - uses: actions/checkout@v6
@@ -26,24 +23,26 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version-file: hivepulse-api/go.mod
-          cache-dependency-path: hivepulse-api/go.sum
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Prepare web/dist for embed
+        run: mkdir -p web/dist && touch web/dist/.keep
 
       - name: Build
         run: go build ./...
 
       - name: Test
-        run: go test -v -race -coverprofile=coverage.out ./...
+        run: go test -v -race -coverprofile=coverage.out ./internal/... ./infrastructure/... ./web/...
 
       - name: Upload coverage
         uses: actions/upload-artifact@v7
         if: always()
         with:
           name: go-coverage
-          path: hivepulse-api/coverage.out
+          path: coverage.out
 
       - name: golangci-lint
-        working-directory: hivepulse-api
         run: |
           go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
           golangci-lint run --timeout=5m
@@ -56,7 +55,7 @@ jobs:
       - name: Swagger diff check
         run: |
           go install github.com/swaggo/swag/cmd/swag@latest
-          swag init --generalInfo cmd/server/main.go --output docs/
+          swag init --generalInfo cmd/oss/main.go --output docs/
           git diff --exit-code docs/
 
   # ── Frontend: lint + test + build ─────────────────────────────────
@@ -65,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: hivepulse-web
+        working-directory: ui
 
     steps:
       - uses: actions/checkout@v6
@@ -75,7 +74,7 @@ jobs:
         with:
           node-version: "20"
           cache: npm
-          cache-dependency-path: hivepulse-web/package-lock.json
+          cache-dependency-path: ui/package-lock.json
 
       - name: Install dependencies
         run: npm ci

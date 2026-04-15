@@ -1,0 +1,29 @@
+CREATE TABLE monitors (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name            VARCHAR(100) NOT NULL,
+    check_type      VARCHAR(10) NOT NULL CHECK (check_type IN ('http','tcp','ping','dns')),
+    interval        INTEGER NOT NULL DEFAULT 60,
+    timeout         INTEGER NOT NULL DEFAULT 30,
+    retries         INTEGER NOT NULL DEFAULT 0,
+    retry_interval  INTEGER NOT NULL DEFAULT 20,
+    enabled         BOOLEAN NOT NULL DEFAULT true,
+    url              TEXT,
+    method           VARCHAR(10),
+    expected_status  INTEGER,
+    request_headers  TEXT,
+    request_body     TEXT,
+    follow_redirects BOOLEAN NOT NULL DEFAULT true,
+    host             TEXT,
+    port             INTEGER,
+    ping_host        TEXT,
+    packet_count     INTEGER,
+    dns_host         TEXT,
+    record_type      VARCHAR(10),
+    expected_value   TEXT,
+    dns_server       TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_monitors_user_id ON monitors(user_id);
+CREATE INDEX idx_monitors_enabled ON monitors(enabled);

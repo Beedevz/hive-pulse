@@ -1,1 +1,0 @@
-ALTER TABLE monitors ALTER COLUMN last_status TYPE VARCHAR(10);
