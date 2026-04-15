@@ -1,3 +1,4 @@
+// Copyright (C) 2024 Beedevz. Licensed under AGPL v3 — see LICENSE for details.
 // hivepulse-api/internal/adapter/repo/incident_repo.go
 package repo
 

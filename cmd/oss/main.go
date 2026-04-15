@@ -1,3 +1,4 @@
+// Copyright (C) 2024 Beedevz. Licensed under AGPL v3 — see LICENSE for details.
 // @title          HivePulse API
 // @version        1.0
 // @description    Open-source uptime monitoring platform
