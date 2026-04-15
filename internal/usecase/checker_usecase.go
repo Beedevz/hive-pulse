@@ -1,3 +1,4 @@
+// Copyright (C) 2024 Beedevz. Licensed under AGPL v3 — see LICENSE for details.
 // hivepulse-api/internal/usecase/checker_usecase.go
 package usecase
 

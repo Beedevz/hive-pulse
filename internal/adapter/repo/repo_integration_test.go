@@ -1,3 +1,4 @@
+// Copyright (C) 2024 Beedevz. Licensed under AGPL v3 — see LICENSE for details.
 //go:build integration
 
 package repo_test

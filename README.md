@@ -2,7 +2,7 @@
 
 Open-source uptime monitoring and status page platform. Self-hosted, lightweight, and built for teams running 5–500 endpoints on a single node.
 
-![License](https://img.shields.io/badge/license-MIT-blue)
+![License](https://img.shields.io/badge/license-AGPL--v3-blue)
 ![Docker](https://img.shields.io/badge/docker-beedevztech%2Fhivepulse-blue)
 
 ---
@@ -69,15 +69,11 @@ helm upgrade --install hivepulse hivepulse/hivepulse \
 
 ```bash
 # Backend
-cd hivepulse-api
-go test ./...
-go build ./cmd/server
+go test ./internal/... ./infrastructure/...
+go build ./cmd/oss
 
 # Frontend
-cd hivepulse-web
-npm ci
-npm run dev
-npm run test
+cd ui && npm ci && npm run dev
 
 # Full stack
 docker compose up
@@ -96,4 +92,6 @@ docker compose up
 
 ## License
 
-MIT © [Beedevz](https://github.com/Beedevz)
+[AGPL v3](LICENSE) © [Beedevz](https://github.com/Beedevz)
+
+For commercial embedded use or proprietary deployments, contact **hello@beedevz.com**.
