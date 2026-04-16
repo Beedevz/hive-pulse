@@ -265,7 +265,7 @@ func serveFrontend(staticFS fs.FS) gin.HandlerFunc {
 		if err == nil {
 			info, statErr := f.Stat()
 			isDir := statErr == nil && info.IsDir()
-			f.Close()
+			_ = f.Close()
 			if !isDir {
 				fileServer.ServeHTTP(c.Writer, c.Request)
 				return

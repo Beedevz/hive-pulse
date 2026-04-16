@@ -2,20 +2,16 @@
 
 # ── Local dev setup: symlink SaaS repos into inject directories ──────────────
 dev-setup:
-	@echo "Setting up SaaS symlinks..."
-	@mkdir -p internal/providers cmd/saas ui/src
-	@if [ -d "../hivepulse-saas-providers" ]; then \
-		ln -sfn "$$(realpath ../hivepulse-saas-providers)" internal/providers/saas; \
-		echo "  ✓ internal/providers/saas → ../hivepulse-saas-providers"; \
-	else \
-		echo "  ✗ ../hivepulse-saas-providers not found — clone it next to this repo"; \
-	fi
-	@if [ -d "../hivepulse-saas-ui" ]; then \
-		ln -sfn "$$(realpath ../hivepulse-saas-ui)" ui/src/saas; \
-		echo "  ✓ ui/src/saas → ../hivepulse-saas-ui"; \
-	else \
-		echo "  ✗ ../hivepulse-saas-ui not found — clone it next to this repo"; \
-	fi
+	@test -d ../hivepulse-saas-providers || \
+		(echo "ERROR: ../hivepulse-saas-providers not found — clone it next to this repo" && exit 1)
+	@test -d ../hivepulse-saas-ui || \
+		(echo "ERROR: ../hivepulse-saas-ui not found — clone it next to this repo" && exit 1)
+	@mkdir -p internal/providers ui/src
+	ln -sfn $(abspath ../hivepulse-saas-providers) internal/providers/saas
+	ln -sfn $(abspath ../hivepulse-saas-ui) ui/src/saas
+	@echo "Dev symlinks created:"
+	@echo "  internal/providers/saas → $(abspath ../hivepulse-saas-providers)"
+	@echo "  ui/src/saas             → $(abspath ../hivepulse-saas-ui)"
 
 # ── Build ────────────────────────────────────────────────────────────────────
 build-ui:

@@ -32,7 +32,7 @@ func (c *TCPChecker) Check(ctx context.Context, m *domain.Monitor) (*domain.Hear
 		hb.ErrorMsg = err.Error()
 		return hb, nil
 	}
-	conn.Close()
+	_ = conn.Close()
 	hb.Status = "up"
 	return hb, nil
 }

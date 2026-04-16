@@ -10,7 +10,9 @@ vendor/
 # Note: docs/ swagger files are NOT ignored — committed and CI diffs them
 
 # SaaS inject directories (populated by CI or make dev-setup symlinks)
+internal/providers/saas
 internal/providers/saas/
+ui/src/saas
 ui/src/saas/
 cmd/saas/main.go
 web/dist/
