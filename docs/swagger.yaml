@@ -1,36 +1,36 @@
 basePath: /api/v1
 definitions:
-  github_com_beedevz_hivepulse_internal_domain.AssignmentTriggers:
+  domain.AssignmentTriggers:
     properties:
       cooldown_minutes:
         description: 0 = disabled
         type: integer
       schedule:
-        $ref: '#/definitions/github_com_beedevz_hivepulse_internal_domain.ScheduleRule'
+        $ref: '#/definitions/domain.ScheduleRule'
     type: object
-  github_com_beedevz_hivepulse_internal_domain.DownPeriod:
+  domain.DownPeriod:
     properties:
       resolved_at:
         type: string
       started_at:
         type: string
     type: object
-  github_com_beedevz_hivepulse_internal_domain.GeneralSettings:
+  domain.GeneralSettings:
     properties:
       timezone:
         description: IANA timezone, e.g. "Europe/Istanbul"
         type: string
     type: object
-  github_com_beedevz_hivepulse_internal_domain.OverviewStats:
+  domain.OverviewStats:
     properties:
       avg_ping_ms:
         type: integer
       buckets:
         items:
-          $ref: '#/definitions/github_com_beedevz_hivepulse_internal_domain.StatsBucket'
+          $ref: '#/definitions/domain.StatsBucket'
         type: array
     type: object
-  github_com_beedevz_hivepulse_internal_domain.ScheduleRule:
+  domain.ScheduleRule:
     properties:
       days:
         description: e.g. ["mon","tue","wed","thu","fri"]
@@ -44,7 +44,7 @@ definitions:
         description: '"HH:MM" 24-hour'
         type: string
     type: object
-  github_com_beedevz_hivepulse_internal_domain.StatsBucket:
+  domain.StatsBucket:
     properties:
       avg_ping_ms:
         type: integer
@@ -55,31 +55,31 @@ definitions:
       up_count:
         type: integer
     type: object
-  github_com_beedevz_hivepulse_internal_domain.StatsResponse:
+  domain.StatsResponse:
     properties:
       avg_ping_ms:
         type: integer
       buckets:
         items:
-          $ref: '#/definitions/github_com_beedevz_hivepulse_internal_domain.StatsBucket'
+          $ref: '#/definitions/domain.StatsBucket'
         type: array
       down_periods:
         items:
-          $ref: '#/definitions/github_com_beedevz_hivepulse_internal_domain.DownPeriod'
+          $ref: '#/definitions/domain.DownPeriod'
         type: array
       uptime_pct:
         type: number
     type: object
-  internal_adapter_handler.incidentListResponse:
+  handler.incidentListResponse:
     properties:
       data:
         items:
-          $ref: '#/definitions/internal_adapter_handler.incidentResponse'
+          $ref: '#/definitions/handler.incidentResponse'
         type: array
       total:
         type: integer
     type: object
-  internal_adapter_handler.incidentResponse:
+  handler.incidentResponse:
     properties:
       duration_s:
         type: integer
@@ -96,7 +96,7 @@ definitions:
       started_at:
         type: string
     type: object
-  internal_adapter_handler.logResponse:
+  handler.logResponse:
     properties:
       channel_id:
         type: string
@@ -115,7 +115,7 @@ definitions:
       status:
         type: string
     type: object
-  internal_adapter_handler.loginRequest:
+  handler.loginRequest:
     properties:
       email:
         type: string
@@ -125,7 +125,7 @@ definitions:
     - email
     - password
     type: object
-  internal_adapter_handler.monitorWriteRequest:
+  handler.monitorWriteRequest:
     properties:
       check_type:
         type: string
@@ -135,6 +135,8 @@ definitions:
         type: string
       enabled:
         type: boolean
+      expected_keyword:
+        type: string
       expected_status:
         type: integer
       expected_value:
@@ -176,7 +178,36 @@ definitions:
     - interval
     - name
     type: object
-  internal_adapter_handler.setupRequest:
+  handler.mwCreateRequest:
+    properties:
+      ends_at:
+        type: string
+      monitor_id:
+        type: string
+      reason:
+        type: string
+      starts_at:
+        type: string
+    required:
+    - ends_at
+    - starts_at
+    type: object
+  handler.mwResponse:
+    properties:
+      created_at:
+        type: string
+      ends_at:
+        type: string
+      id:
+        type: string
+      monitor_id:
+        type: string
+      reason:
+        type: string
+      starts_at:
+        type: string
+    type: object
+  handler.setupRequest:
     properties:
       email:
         type: string
@@ -190,7 +221,7 @@ definitions:
     - name
     - password
     type: object
-  internal_adapter_handler.smtpConfig:
+  handler.smtpConfig:
     properties:
       from:
         type: string
@@ -203,7 +234,7 @@ definitions:
       user:
         type: string
     type: object
-  internal_adapter_handler.statusPageResponse:
+  handler.statusPageResponse:
     properties:
       accent_color:
         type: string
@@ -226,7 +257,7 @@ definitions:
       title:
         type: string
     type: object
-  internal_adapter_handler.statusPageWriteRequest:
+  handler.statusPageWriteRequest:
     properties:
       accent_color:
         type: string
@@ -247,7 +278,7 @@ definitions:
     required:
     - title
     type: object
-  internal_adapter_handler.tagResponse:
+  handler.tagResponse:
     properties:
       color:
         type: string
@@ -258,7 +289,7 @@ definitions:
       name:
         type: string
     type: object
-  internal_adapter_handler.tagWriteRequest:
+  handler.tagWriteRequest:
     properties:
       color:
         type: string
@@ -284,7 +315,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/internal_adapter_handler.loginRequest'
+          $ref: '#/definitions/handler.loginRequest'
       produces:
       - application/json
       responses:
@@ -370,7 +401,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/internal_adapter_handler.setupRequest'
+          $ref: '#/definitions/handler.setupRequest'
       produces:
       - application/json
       responses:
@@ -437,12 +468,71 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_adapter_handler.incidentListResponse'
+            $ref: '#/definitions/handler.incidentListResponse'
       security:
       - Bearer: []
       summary: List incidents
       tags:
       - incidents
+  /maintenance-windows:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: List global maintenance windows
+      tags:
+      - maintenance
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Maintenance window
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.mwCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.mwResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Bearer: []
+      summary: Create maintenance window
+      tags:
+      - maintenance
+  /maintenance-windows/{id}:
+    delete:
+      parameters:
+      - description: Window ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      security:
+      - Bearer: []
+      summary: Delete maintenance window
+      tags:
+      - maintenance
   /monitors:
     get:
       parameters:
@@ -484,7 +574,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/internal_adapter_handler.monitorWriteRequest'
+          $ref: '#/definitions/handler.monitorWriteRequest'
       produces:
       - application/json
       responses:
@@ -579,7 +669,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/internal_adapter_handler.monitorWriteRequest'
+          $ref: '#/definitions/handler.monitorWriteRequest'
       responses:
         "200":
           description: OK
@@ -624,7 +714,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/github_com_beedevz_hivepulse_internal_domain.AssignmentTriggers'
+          $ref: '#/definitions/domain.AssignmentTriggers'
       produces:
       - application/json
       responses:
@@ -683,6 +773,27 @@ paths:
       summary: List heartbeats for a monitor
       tags:
       - monitors
+  /monitors/{id}/maintenance:
+    get:
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: List maintenance windows for a monitor
+      tags:
+      - maintenance
   /monitors/{id}/stats:
     get:
       parameters:
@@ -702,7 +813,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_beedevz_hivepulse_internal_domain.StatsResponse'
+            $ref: '#/definitions/domain.StatsResponse'
         "400":
           description: Bad Request
           schema:
@@ -802,7 +913,7 @@ paths:
           schema:
             additionalProperties:
               items:
-                $ref: '#/definitions/internal_adapter_handler.logResponse'
+                $ref: '#/definitions/handler.logResponse'
               type: array
             type: object
         "500":
@@ -849,7 +960,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_beedevz_hivepulse_internal_domain.GeneralSettings'
+            $ref: '#/definitions/domain.GeneralSettings'
         "500":
           description: Internal Server Error
           schema:
@@ -870,7 +981,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/github_com_beedevz_hivepulse_internal_domain.GeneralSettings'
+          $ref: '#/definitions/domain.GeneralSettings'
       produces:
       - application/json
       responses:
@@ -905,7 +1016,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_adapter_handler.smtpConfig'
+            $ref: '#/definitions/handler.smtpConfig'
         "500":
           description: Internal Server Error
           schema:
@@ -926,7 +1037,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/internal_adapter_handler.smtpConfig'
+          $ref: '#/definitions/handler.smtpConfig'
       produces:
       - application/json
       responses:
@@ -961,7 +1072,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_beedevz_hivepulse_internal_domain.OverviewStats'
+            $ref: '#/definitions/domain.OverviewStats'
       security:
       - Bearer: []
       summary: Global stats overview
@@ -1002,14 +1113,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/internal_adapter_handler.statusPageWriteRequest'
+          $ref: '#/definitions/handler.statusPageWriteRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/internal_adapter_handler.statusPageResponse'
+            $ref: '#/definitions/handler.statusPageResponse'
         "400":
           description: Bad Request
           schema:
@@ -1056,7 +1167,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_adapter_handler.statusPageResponse'
+            $ref: '#/definitions/handler.statusPageResponse'
         "404":
           description: Not Found
           schema:
@@ -1080,12 +1191,12 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/internal_adapter_handler.statusPageWriteRequest'
+          $ref: '#/definitions/handler.statusPageWriteRequest'
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_adapter_handler.statusPageResponse'
+            $ref: '#/definitions/handler.statusPageResponse'
         "404":
           description: Not Found
           schema:
@@ -1121,14 +1232,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/internal_adapter_handler.tagWriteRequest'
+          $ref: '#/definitions/handler.tagWriteRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/internal_adapter_handler.tagResponse'
+            $ref: '#/definitions/handler.tagResponse'
         "400":
           description: Bad Request
           schema:
