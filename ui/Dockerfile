@@ -6,7 +6,8 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# Serve stage
+# Serve stage — nginx master runs as root by design (workers drop to nginx user)
+# nosemgrep: dockerfile.security.missing-user.missing-user
 FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf

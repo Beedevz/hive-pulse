@@ -12,6 +12,11 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
 
   postgres:
     image: postgres:16-alpine

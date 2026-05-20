@@ -17,9 +17,11 @@ RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o server ./cmd/oss/...
 
 # ── Stage 3: Minimal runtime ────────────────────────────────────────────────
 FROM alpine:3.23
-RUN apk upgrade --no-cache && apk add --no-cache ca-certificates
+RUN apk upgrade --no-cache && apk add --no-cache ca-certificates && \
+    adduser -D -u 1001 hivepulse
 COPY --from=api-builder /app/server /app/server
 COPY --from=api-builder /app/migrations /app/migrations
 WORKDIR /app
+USER hivepulse
 EXPOSE 8080
 CMD ["./server"]

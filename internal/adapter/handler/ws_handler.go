@@ -27,7 +27,7 @@ func NewWSHandler(hub *infrastructure.Hub) *WSHandler {
 
 // Connect godoc
 // @Summary      WebSocket real-time heartbeat stream
-// @Description  Connect via ws://host/api/v1/ws?token=<access_token>
+// @Description  Connect via wss://host/api/v1/ws?token=<access_token>
 // @Tags         ws
 // @Security     Bearer
 // @Router       /ws [get]
