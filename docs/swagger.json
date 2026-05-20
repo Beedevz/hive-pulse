@@ -27,7 +27,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_handler.loginRequest"
+                            "$ref": "#/definitions/handler.loginRequest"
                         }
                     }
                 ],
@@ -164,7 +164,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_handler.setupRequest"
+                            "$ref": "#/definitions/handler.setupRequest"
                         }
                     }
                 ],
@@ -268,8 +268,105 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_handler.incidentListResponse"
+                            "$ref": "#/definitions/handler.incidentListResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/maintenance-windows": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "maintenance"
+                ],
+                "summary": "List global maintenance windows",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "maintenance"
+                ],
+                "summary": "Create maintenance window",
+                "parameters": [
+                    {
+                        "description": "Maintenance window",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.mwCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/handler.mwResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/maintenance-windows/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "tags": [
+                    "maintenance"
+                ],
+                "summary": "Delete maintenance window",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Window ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     }
                 }
             }
@@ -346,7 +443,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_handler.monitorWriteRequest"
+                            "$ref": "#/definitions/handler.monitorWriteRequest"
                         }
                     }
                 ],
@@ -450,7 +547,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_handler.monitorWriteRequest"
+                            "$ref": "#/definitions/handler.monitorWriteRequest"
                         }
                     }
                 ],
@@ -566,7 +663,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_beedevz_hivepulse_internal_domain.AssignmentTriggers"
+                            "$ref": "#/definitions/domain.AssignmentTriggers"
                         }
                     }
                 ],
@@ -651,6 +748,40 @@
                 }
             }
         },
+        "/monitors/{id}/maintenance": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "maintenance"
+                ],
+                "summary": "List maintenance windows for a monitor",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Monitor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/monitors/{id}/stats": {
             "get": {
                 "security": [
@@ -685,7 +816,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_beedevz_hivepulse_internal_domain.StatsResponse"
+                            "$ref": "#/definitions/domain.StatsResponse"
                         }
                     },
                     "400": {
@@ -846,7 +977,7 @@
                             "additionalProperties": {
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/internal_adapter_handler.logResponse"
+                                    "$ref": "#/definitions/handler.logResponse"
                                 }
                             }
                         }
@@ -919,7 +1050,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_beedevz_hivepulse_internal_domain.GeneralSettings"
+                            "$ref": "#/definitions/domain.GeneralSettings"
                         }
                     },
                     "500": {
@@ -956,7 +1087,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_beedevz_hivepulse_internal_domain.GeneralSettings"
+                            "$ref": "#/definitions/domain.GeneralSettings"
                         }
                     }
                 ],
@@ -1009,7 +1140,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_handler.smtpConfig"
+                            "$ref": "#/definitions/handler.smtpConfig"
                         }
                     },
                     "500": {
@@ -1046,7 +1177,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_handler.smtpConfig"
+                            "$ref": "#/definitions/handler.smtpConfig"
                         }
                     }
                 ],
@@ -1099,7 +1230,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_beedevz_hivepulse_internal_domain.OverviewStats"
+                            "$ref": "#/definitions/domain.OverviewStats"
                         }
                     }
                 }
@@ -1168,7 +1299,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_handler.statusPageWriteRequest"
+                            "$ref": "#/definitions/handler.statusPageWriteRequest"
                         }
                     }
                 ],
@@ -1176,7 +1307,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_handler.statusPageResponse"
+                            "$ref": "#/definitions/handler.statusPageResponse"
                         }
                     },
                     "400": {
@@ -1218,7 +1349,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_handler.statusPageResponse"
+                            "$ref": "#/definitions/handler.statusPageResponse"
                         }
                     },
                     "404": {
@@ -1256,7 +1387,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_handler.statusPageWriteRequest"
+                            "$ref": "#/definitions/handler.statusPageWriteRequest"
                         }
                     }
                 ],
@@ -1264,7 +1395,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_handler.statusPageResponse"
+                            "$ref": "#/definitions/handler.statusPageResponse"
                         }
                     },
                     "404": {
@@ -1360,7 +1491,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_handler.tagWriteRequest"
+                            "$ref": "#/definitions/handler.tagWriteRequest"
                         }
                     }
                 ],
@@ -1368,7 +1499,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_handler.tagResponse"
+                            "$ref": "#/definitions/handler.tagResponse"
                         }
                     },
                     "400": {
@@ -1600,7 +1731,7 @@
         }
     },
     "definitions": {
-        "github_com_beedevz_hivepulse_internal_domain.AssignmentTriggers": {
+        "domain.AssignmentTriggers": {
             "type": "object",
             "properties": {
                 "cooldown_minutes": {
@@ -1608,11 +1739,11 @@
                     "type": "integer"
                 },
                 "schedule": {
-                    "$ref": "#/definitions/github_com_beedevz_hivepulse_internal_domain.ScheduleRule"
+                    "$ref": "#/definitions/domain.ScheduleRule"
                 }
             }
         },
-        "github_com_beedevz_hivepulse_internal_domain.DownPeriod": {
+        "domain.DownPeriod": {
             "type": "object",
             "properties": {
                 "resolved_at": {
@@ -1623,7 +1754,7 @@
                 }
             }
         },
-        "github_com_beedevz_hivepulse_internal_domain.GeneralSettings": {
+        "domain.GeneralSettings": {
             "type": "object",
             "properties": {
                 "timezone": {
@@ -1632,7 +1763,7 @@
                 }
             }
         },
-        "github_com_beedevz_hivepulse_internal_domain.OverviewStats": {
+        "domain.OverviewStats": {
             "type": "object",
             "properties": {
                 "avg_ping_ms": {
@@ -1641,12 +1772,12 @@
                 "buckets": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_beedevz_hivepulse_internal_domain.StatsBucket"
+                        "$ref": "#/definitions/domain.StatsBucket"
                     }
                 }
             }
         },
-        "github_com_beedevz_hivepulse_internal_domain.ScheduleRule": {
+        "domain.ScheduleRule": {
             "type": "object",
             "properties": {
                 "days": {
@@ -1666,7 +1797,7 @@
                 }
             }
         },
-        "github_com_beedevz_hivepulse_internal_domain.StatsBucket": {
+        "domain.StatsBucket": {
             "type": "object",
             "properties": {
                 "avg_ping_ms": {
@@ -1683,7 +1814,7 @@
                 }
             }
         },
-        "github_com_beedevz_hivepulse_internal_domain.StatsResponse": {
+        "domain.StatsResponse": {
             "type": "object",
             "properties": {
                 "avg_ping_ms": {
@@ -1692,13 +1823,13 @@
                 "buckets": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_beedevz_hivepulse_internal_domain.StatsBucket"
+                        "$ref": "#/definitions/domain.StatsBucket"
                     }
                 },
                 "down_periods": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_beedevz_hivepulse_internal_domain.DownPeriod"
+                        "$ref": "#/definitions/domain.DownPeriod"
                     }
                 },
                 "uptime_pct": {
@@ -1706,13 +1837,13 @@
                 }
             }
         },
-        "internal_adapter_handler.incidentListResponse": {
+        "handler.incidentListResponse": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/internal_adapter_handler.incidentResponse"
+                        "$ref": "#/definitions/handler.incidentResponse"
                     }
                 },
                 "total": {
@@ -1720,7 +1851,7 @@
                 }
             }
         },
-        "internal_adapter_handler.incidentResponse": {
+        "handler.incidentResponse": {
             "type": "object",
             "properties": {
                 "duration_s": {
@@ -1746,7 +1877,7 @@
                 }
             }
         },
-        "internal_adapter_handler.logResponse": {
+        "handler.logResponse": {
             "type": "object",
             "properties": {
                 "channel_id": {
@@ -1775,7 +1906,7 @@
                 }
             }
         },
-        "internal_adapter_handler.loginRequest": {
+        "handler.loginRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -1790,7 +1921,7 @@
                 }
             }
         },
-        "internal_adapter_handler.monitorWriteRequest": {
+        "handler.monitorWriteRequest": {
             "type": "object",
             "required": [
                 "check_type",
@@ -1809,6 +1940,9 @@
                 },
                 "enabled": {
                     "type": "boolean"
+                },
+                "expected_keyword": {
+                    "type": "string"
                 },
                 "expected_status": {
                     "type": "integer"
@@ -1866,7 +2000,51 @@
                 }
             }
         },
-        "internal_adapter_handler.setupRequest": {
+        "handler.mwCreateRequest": {
+            "type": "object",
+            "required": [
+                "ends_at",
+                "starts_at"
+            ],
+            "properties": {
+                "ends_at": {
+                    "type": "string"
+                },
+                "monitor_id": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "starts_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.mwResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "ends_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "monitor_id": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "starts_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "handler.setupRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -1886,7 +2064,7 @@
                 }
             }
         },
-        "internal_adapter_handler.smtpConfig": {
+        "handler.smtpConfig": {
             "type": "object",
             "properties": {
                 "from": {
@@ -1906,7 +2084,7 @@
                 }
             }
         },
-        "internal_adapter_handler.statusPageResponse": {
+        "handler.statusPageResponse": {
             "type": "object",
             "properties": {
                 "accent_color": {
@@ -1941,7 +2119,7 @@
                 }
             }
         },
-        "internal_adapter_handler.statusPageWriteRequest": {
+        "handler.statusPageWriteRequest": {
             "type": "object",
             "required": [
                 "title"
@@ -1973,7 +2151,7 @@
                 }
             }
         },
-        "internal_adapter_handler.tagResponse": {
+        "handler.tagResponse": {
             "type": "object",
             "properties": {
                 "color": {
@@ -1990,7 +2168,7 @@
                 }
             }
         },
-        "internal_adapter_handler.tagWriteRequest": {
+        "handler.tagWriteRequest": {
             "type": "object",
             "required": [
                 "color",

@@ -91,7 +91,7 @@ func (h *SettingsHandler) PutSMTP(c *gin.Context) {
 		req.Port = 587
 	}
 
-	b, _ := json.Marshal(req)
+	b, _ := json.Marshal(req) //#nosec G117 -- password field is AES-256-GCM encrypted before this point
 	row := appSettingRow{Key: "smtp", Value: b}
 	if err := h.db.WithContext(c.Request.Context()).Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "key"}},
