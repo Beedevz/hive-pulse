@@ -16,6 +16,8 @@ jobs:
   backend:
     name: Backend
     runs-on: ubuntu-latest
+    env:
+      GOTOOLCHAIN: auto
 
     steps:
       - uses: actions/checkout@v6
@@ -25,8 +27,6 @@ jobs:
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
-        env:
-          GOTOOLCHAIN: auto
 
       - name: Prepare web/dist for embed
         run: mkdir -p web/dist && touch web/dist/.keep
