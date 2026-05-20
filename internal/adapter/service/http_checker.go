@@ -24,7 +24,7 @@ func (c *HTTPChecker) Check(ctx context.Context, m *domain.Monitor) (*domain.Hea
 	}
 
 	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: m.SkipTLSVerify}, //nolint:gosec
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: m.SkipTLSVerify}, //#nosec G402 -- user-configurable per-monitor TLS skip
 	}
 	client := &http.Client{
 		Timeout:   time.Duration(m.Timeout) * time.Second,
