@@ -16,7 +16,7 @@ COPY --from=web-builder /app/dist ./web/dist/
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o server ./cmd/oss/...
 
 # ── Stage 3: Minimal runtime ────────────────────────────────────────────────
-FROM alpine:3.21
+FROM alpine:3.23
 RUN apk upgrade --no-cache && apk add --no-cache ca-certificates
 COPY --from=api-builder /app/server /app/server
 COPY --from=api-builder /app/migrations /app/migrations
