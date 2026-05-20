@@ -1379,7 +1379,7 @@ paths:
       - users
   /ws:
     get:
-      description: Connect via ws://host/api/v1/ws?token=<access_token>
+      description: Connect via wss://host/api/v1/ws?token=<access_token>
       responses: {}
       security:
       - Bearer: []
