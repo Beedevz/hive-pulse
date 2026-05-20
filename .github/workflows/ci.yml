@@ -50,9 +50,9 @@ jobs:
           golangci-lint run --timeout=5m
 
       - name: gosec — Go security scanner
-        uses: securego/gosec@master
-        with:
-          args: "-exclude=G401,G501 -exclude-dir=adapters/testdata ./..."
+        run: |
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          gosec -exclude=G401,G501 -exclude-dir=adapters/testdata ./...
 
       - name: Swagger diff check
         run: |
