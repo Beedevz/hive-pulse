@@ -16,3 +16,5 @@ services:
     depends_on:
       - app
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true

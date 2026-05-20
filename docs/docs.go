@@ -1728,7 +1728,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "Connect via ws://host/api/v1/ws?token=\u003caccess_token\u003e",
+                "description": "Connect via wss://host/api/v1/ws?token=\u003caccess_token\u003e",
                 "tags": [
                     "ws"
                 ],
