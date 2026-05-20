@@ -7,7 +7,7 @@ COPY ui/ .
 RUN npm run build
 
 # ── Stage 2: Build Go binary with embedded frontend ─────────────────────────
-FROM golang:1.26.3-alpine AS api-builder
+FROM golang:1.26-alpine AS api-builder
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
